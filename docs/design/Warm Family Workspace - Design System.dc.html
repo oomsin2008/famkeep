@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/broadsheet-bff30f67-03c2-4110-af44-1572d66fd529/styles.css">
+<script src="_ds/broadsheet-bff30f67-03c2-4110-af44-1572d66fd529/_ds_bundle.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/duotone/style.css">
+<style>
+  a { color: var(--color-accent); }
+  a:hover { color: var(--color-accent-700); }
+  :root{
+    --priv:#7FB9DE; --priv-tint:#E8F2F9; --priv-hover:#6A9EC9; --priv-press:#5883B4;
+    --fam:#F28A45; --fam-tint:#FDF0E8; --fam-hover:#D67635; --fam-press:#B95E2B;
+    --status-progress:#7FB9DE; --status-progress-tint:#E8F2F9;
+    --status-duesoon:#F6BE5C; --status-duesoon-tint:#FEF5EA;
+    --status-overdue:#DC2626; --status-overdue-tint:#FEECEC;
+    --status-done:#1F6B52; --status-done-tint:#EDF6F2;
+    --status-cancelled:#6B6A63; --status-cancelled-tint:#F0EFEC;
+    --duesoon:#DC2626; --duesoon-tint:#FEECEC;
+    --n-bg:#F3F1E7; --n-surface:#FFFDF8; --n-surface-muted:#FAF9F5;
+    --n-text:#101820; --n-text-2:#6B6A63; --n-border:#EFEDE6;
+  }
+  .ds-sec{padding:0 0 var(--space-8);}
+  .ds-h{display:flex;align-items:baseline;gap:10px;margin-bottom:var(--space-1);}
+  .ds-num{font:600 11px ui-monospace,Menlo,monospace;opacity:.4;}
+  .ds-note{font-size:13px;opacity:.65;max-width:640px;margin:0 0 var(--space-4);}
+  .ds-row{display:flex;flex-wrap:wrap;gap:var(--space-3);}
+  .swatch{width:150px;}
+  .swatch .chip{height:64px;border-radius:var(--radius-md);}
+  .swatch .lbl{font-size:12px;font-weight:600;margin-top:6px;}
+  .swatch .hex{font:12px ui-monospace,Menlo,monospace;opacity:.55;}
+  .dodont{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);max-width:820px;}
+  .dodont > div{font-size:13px;line-height:1.6;}
+  .dodont .t{font-family:var(--font-heading);font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+</style>
+</helmet>
+<div style="background:var(--n-bg);color:var(--n-text);min-height:100vh;">
+
+  <div style="padding:var(--space-8) var(--space-6) 0;max-width:1040px;margin:0 auto;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:var(--space-2);">
+      <span style="width:20px;height:20px;border-radius:var(--radius-md);background:var(--grad);flex:none;"></span>
+      <h6 style="margin:0;color:var(--priv);">Design System</h6>
+    </div>
+    <h1 style="margin-bottom:6px;">บ้านเรา — Warm Family Workspace</h1>
+    <p style="font-size:15px;opacity:.7;max-width:680px;margin:0 0 var(--space-4);">ระบบภาพต่อยอดจาก Broadsheet สำหรับเวิร์กสเปซครอบครัวที่เชื่อมกับ LINE — ล็อกทิศทางแล้ว: ใช้เอกสารนี้เป็นแหล่งอ้างอิงเดียวเมื่อออกแบบหน้าจอถัดไป</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:var(--space-8);">
+      <span class="tag tag-outline">1 · Context first</span>
+      <span class="tag tag-outline">2 · Warm ไม่ใช่เด็ก</span>
+      <span class="tag tag-outline">3 · Calm ไม่ใช่โล่ง</span>
+      <span class="tag tag-outline">4 · สีช่วยสื่อความหมาย ไม่ใช่ผู้สื่อสารเดียว</span>
+      <span class="tag tag-outline">5 · การ์ดต้องคู่ควร</span>
+      <span class="tag tag-outline">6 · มือถือคือหน้าจอหลัก</span>
+      <span class="tag tag-outline">7 · ภาษาไทยอ่านง่ายเป็นอันดับหนึ่ง</span>
+      <span class="tag tag-outline">8 · ไล่สีเป็นแค่ label ของแบรนด์</span>
+    </div>
+  </div>
+
+  <div style="max-width:1040px;margin:0 auto;padding:0 var(--space-6);">
+
+    <div class="ds-sec">
+      <div class="ds-h"><span class="ds-num">01</span><h3 style="margin:0;">สีบริบทพื้นที่ (Workspace context)</h3></div>
+      <p class="ds-note">สีสองตัวนี้ตอบคำถามเดียวเสมอ: "ไฟล์/งานนี้เป็นของใคร" — ฟ้าสายและส้มโครงร้อนที่เป็นมิตรตัวอักษรแต่ยังแตกต่างชัดเจน ห้ามใช้ทำหน้าที่อื่น (ไม่ใช่สถานะ)</p>
+      <div class="ds-row">
+        <div class="swatch"><div class="chip" style="background:var(--priv);"></div><div class="lbl">Private · ส่วนตัว</div><div class="hex">#7FB9DE</div></div>
+        <div class="swatch"><div class="chip" style="background:var(--priv-tint);border:1px solid var(--n-border);"></div><div class="lbl">Private tint</div><div class="hex">#E8F2F9</div></div>
+        <div class="swatch"><div class="chip" style="background:var(--fam);"></div><div class="lbl">Family · ครอบครัว</div><div class="hex">#F28A45</div></div>
+        <div class="swatch"><div class="chip" style="background:var(--fam-tint);border:1px solid var(--n-border);"></div><div class="lbl">Family tint</div><div class="hex">#FDF0E8</div></div>
+      </div>
+      <p class="ds-note" style="margin-top:var(--space-3);">ใช้ที่: ไอคอนไฟล์ · เส้นใต้แท็บที่กำลังเลือก · ปุ่มหลักเมื่ออยู่ในบริบทนั้น (เช่น "อัปโหลดไฟล์" ในคลังครอบครัวเป็นส้ม) · วงแหวนอวาตาร์ผู้ใช้ปัจจุบัน ไม่ใช้ทาสีพื้นหลังการ์ดหรือพื้นหลังทั้งหน้า</p>
+    </div>
+
+    <div class="ds-sec">
+      <div class="ds-h"><span class="ds-num">02</span><h3 style="margin:0;">สีสถานะงาน (Task status)</h3></div>
+      <p class="ds-note">ระบบสถานะ 5 สี — ข้อความสีเข้ม + พื้นหลังอ่อน + ขอบสีกลาง ทุกป้ายต้องมีคำคู่กับสีเสมอ ไม่พึ่งสีอย่างเดียว</p>
+      <div class="ds-row">
+        <div class="swatch"><span class="tag" style="font-size:13px;padding:8px 14px;color:#1D4ED8;background:#DBEAFE;border:1px solid #93C5FD;border-radius:6px;">กำลังทำ</span><div class="hex" style="margin-top:8px;font-size:11px;">BG: #DBEAFE · Text: #1D4ED8<br/>Border: #93C5FD</div></div>
+        <div class="swatch"><span class="tag" style="font-size:13px;padding:8px 14px;color:#B45309;background:#FEF3C7;border:1px solid #FCD34D;border-radius:6px;">ใกล้กำหนด</span><div class="hex" style="margin-top:8px;font-size:11px;">BG: #FEF3C7 · Text: #B45309<br/>Border: #FCD34D</div></div>
+        <div class="swatch"><span class="tag" style="font-size:13px;padding:8px 14px;color:#B91C1C;background:#FEE2E2;border:1px solid #FCA5A5;border-radius:6px;">เลยกำหนด</span><div class="hex" style="margin-top:8px;font-size:11px;">BG: #FEE2E2 · Text: #B91C1C<br/>Border: #FCA5A5</div></div>
+        <div class="swatch"><span class="tag" style="font-size:13px;padding:8px 14px;color:#166534;background:#DCFCE7;border:1px solid #86EFAC;border-radius:6px;">เสร็จแล้ว</span><div class="hex" style="margin-top:8px;font-size:11px;">BG: #DCFCE7 · Text: #166534<br/>Border: #86EFAC</div></div>
+        <div class="swatch"><span class="tag" style="font-size:13px;padding:8px 14px;color:#4B5563;background:#F3F4F6;border:1px solid #D1D5DB;border-radius:6px;">ยกเลิก</span><div class="hex" style="margin-top:8px;font-size:11px;">BG: #F3F4F6 · Text: #4B5563<br/>Border: #D1D5DB</div></div>
+      </div>
+    </div>
+
+    <div class="ds-sec">
+      <div class="ds-h"><span class="ds-num">03</span><h3 style="margin:0;">สีแบรนด์เป็นหน่วย (Brand colors as unity)</h3></div>
+      <p class="ds-note">ฟ้า + ส้ม + เหลือง คือแกน Playful Warm ของแบรนด์ — หลีกเลี่ยงไล่สีแบบเต็ม (gradients) เพื่อให้สีแต่ละตัวทำงานอย่างอิสระแถมชัด ใช้สีเต็มเฉพาะจุดที่ต้องการเค้นสำหรับแบรนด์เท่านั้น</p>
+      <div class="ds-row">
+        <div class="swatch"><div class="chip" style="background:#7FB9DE;height:40px;"></div><span style="font-size:13px;padding:2px 0;">Sky Blue</span></div>
+        <div class="swatch"><div class="chip" style="background:#F6BE5C;height:40px;"></div><span style="font-size:13px;padding:2px 0;">Primary Yellow</span></div>
+        <div class="swatch"><div class="chip" style="background:#F28A45;height:40px;"></div><span style="font-size:13px;padding:2px 0;">Coral Orange</span></div>
+      </div>
+    </div>
+
+    <div class="ds-sec">
+      <div class="ds-h"><span class="ds-num">04</span><h3 style="margin:0;">สีเป็นกลาง (Neutrals)</h3></div>
+      <p class="ds-note">ฐานอบอุ่นจางๆ — อุ่นพอที่จะสมดุลกับ Primary Yellow และ Coral Orange แต่เป็นกลางพอที่จะให้ workspace สึกเป็นกลาง ไม่เทพลาสติก</p>
+      <div class="ds-row">
+        <div class="swatch"><div class="chip" style="background:var(--n-bg);border:1px solid var(--n-border);"></div><div class="lbl">BG</div><div class="hex">#F3F1E7</div></div>
+        <div class="swatch"><div class="chip" style="background:var(--n-surface);border:1px solid var(--n-border);"></div><div class="lbl">Surface</div><div class="hex">#FFFDF8</div></div>
+        <div class="swatch"><div class="chip" style="background:var(--n-surface-muted);border:1px solid var(--n-border);"></div><div class="lbl">Surface muted</div><div class="hex">#FAF9F5</div></div>
+        <div class="swatch"><div class="chip" style="background:var(--n-text);"></div><div class="lbl">Text</div><div class="hex">#101820</div></div>
+        <div class="swatch"><div class="chip" style="background:var(--n-text-2);"></div><div class="lbl">Text secondary</div><div class="hex">#6B6A63</div></div>
+        <div class="swatch"><div class="chip" style="background:var(--n-border);border:1px solid #D1D5DB;"></div><div class="lbl">Border</div><div class="hex">#EFEDE6</div></div>
+      </div>
+    </div>
+
+    <div class="ds-sec">
+      <div class="ds-h"><span class="ds-num">05</span><h3 style="margin:0;">ตัวอักษร (Typography)</h3></div>
+      <p class="ds-note">Source Serif 4 ทั้งหมด (สืบจาก Broadsheet) — ให้ขนาดและน้ำหนักจัดลำดับข้อมูล ไม่ใช้กรอบ</p>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div><h1 style="margin:0;">สวัสดี, สมลักษณ์</h1><span class="ds-note" style="margin:0;">H1 · 42px · หัวข้อหน้าหลัก</span></div>
+        <div><h3 style="margin:0;">งานที่ต้องจัดการ</h3><span class="ds-note" style="margin:0;">H3 · 25px · หัวข้อหมวด</span></div>
+        <div><h5 style="margin:0;">บันทึกล่าสุด</h5><span class="ds-note" style="margin:0;">H5 · 16px · หัวข้อย่อยในการ์ด/รายการ</span></div>
+        <div><p style="margin:0;font-size:15px;">เอกสารในกลุ่มจะถูกบันทึกอัตโนมัติ ส่วนรูปภาพให้ตอบกลับรูปนั้นด้วย <strong>#เก็บ</strong></p><span class="ds-note" style="margin:0;">Body · 15px</span></div>
+        <div><p style="margin:0;font-size:12px;opacity:.55;">ของฉัน · 31 ส.ค. · 440.7 KB</p><span class="ds-note" style="margin:0;">Meta · 12px · เมทาดาทารายการ</span></div>
+        <div><p style="margin:0;font:italic 400 13px 'Source Serif 4',serif;opacity:.65;">"วันนี้มีงาน 2 รายการที่ต้องจัดการ"</p><span class="ds-note" style="margin:0;">Italic · โทนอบอุ่นในบรรทัดรอง ไม่ใช่ตัวหนา</span></div>
+      </div>
+    </div>
+
+    <div class="ds-sec">
+      <div class="ds-h"><span class="ds-num">06</span><h3 style="margin:0;">ระยะห่างและขอบมุม</h3></div>
+      <p class="ds-note">ใช้สเกล <code>--space-*</code> ของ Broadsheet (1.25×) ทุกที่ — แถวรายการเว้นด้วย space-3 คั่นด้วยเส้นบาง <code>--color-divider</code> ไม่ใช่การ์ด ขอบมุม <code>--radius-md</code> คือค่าเดียวที่ใช้ทั่วระบบ (ปุ่ม/อินพุต/แท็ก/การ์ดที่นับเป็นการ์ดจริง) — ไม่แนะนำ radius-lg สำหรับหน้าโปรดักต์หลักเพื่อคงความสุขุม</p>
+      <div class="ds-row">
+        <div style="display:flex;align-items:flex-end;gap:10px;">
+          <div style="width:var(--space-1);height:30px;background:var(--color-accent-200);"></div>
+          <div style="width:var(--space-2);height:30px;background:var(--color-accent-200);"></div>
+          <div style="width:var(--space-3);height:30px;background:var(--color-accent-200);"></div>
+          <div style="width:var(--space-4);height:30px;background:var(--color-accent-200);"></div>
+          <div style="width:var(--space-6);height:30px;background:var(--color-accent-200);"></div>
+          <div style="width:var(--space-8);height:30px;background:var(--color-accent-200);"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-sec">
+      <div class="ds-h"><span class="ds-num">07</span><h3 style="margin:0;">การ์ดต้องคู่ควร (Cards are earned)</h3></div>
+      <p class="ds-note">การ์ดใช้เฉพาะเมื่อของหลายอย่างต้องถูกจัดกลุ่มเป็นหน่วยเดียว หรือมีปฏิสัมพันธ์เฉพาะจุด (เช่นกล่องอธิบาย, สรุปสถิติ) รายการ (งาน/ไฟล์) เป็น "แถว" เสมอ คั่นด้วยเส้นบาง ไม่ใช่กล่อง</p>
+      <div class="ds-row" style="align-items:flex-start;">
+        <div style="width:320px;">
+          <div class="ds-note" style="font-weight:600;opacity:.8;margin-bottom:8px;">✓ แถวรายการ (ค่าเริ่มต้น)</div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--color-divider);">
+            <i class="ph-duotone ph-file-pdf" style="font-size:20px;color:var(--priv);"></i>
+            <div style="flex:1;"><div style="font-family:var(--font-heading);font-weight:600;font-size:14px;">ใบนัดตรวจสุขภาพประจำปี.pdf</div><div style="font-size:11.5px;opacity:.5;">ของฉัน · 31 ส.ค. · 440.7 KB</div></div>
+          </div>
+        </div>
+        <div style="width:320px;">
+          <div class="ds-note" style="font-weight:600;opacity:.8;margin-bottom:8px;">✓ การ์ด (เมื่อมีการจัดกลุ่ม/ปฏิสัมพันธ์)</div>
+          <div class="card elev-sm" style="padding:16px;gap:8px;background:var(--fam-tint);">
+            <div style="display:flex;align-items:center;gap:8px;"><i class="ph-duotone ph-chat-circle-text" style="font-size:17px;color:var(--fam);"></i><span style="font-family:var(--font-heading);font-weight:600;font-size:13.5px;">บันทึกจาก LINE</span></div>
+            <div style="font-size:12.5px;line-height:1.6;opacity:.75;">ตอบกลับรูปด้วย <strong>#เก็บ</strong> เพื่อบันทึก · สร้างงานด้วย <strong>#งาน</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-sec">
+      <div class="ds-h"><span class="ds-num">08</span><h3 style="margin:0;">สวิตช์พื้นที่ (Workspace switch)</h3></div>
+      <p class="ds-note">ของฉัน/ครอบครัว — แท็บสองอันเสมอ ไม่ใช้พิลล์ใหญ่หรือสีเต็มพื้นหลัง สีบริบทอยู่ที่เส้นใต้และข้อความของแท็บที่เลือกเท่านั้น</p>
+      <div class="ds-row">
+        <div style="width:280px;">
+          <div style="display:flex;border-bottom:1px solid var(--color-divider);">
+            <div style="flex:1;text-align:center;padding:11px 0;font-size:14px;font-family:var(--font-heading);font-weight:600;color:var(--priv);border-bottom:2px solid var(--priv);margin-bottom:-1px;">ของฉัน</div>
+            <div style="flex:1;text-align:center;padding:11px 0;font-size:14px;font-family:var(--font-heading);font-weight:600;opacity:.5;">ครอบครัว</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-sec">
+      <div class="ds-h"><span class="ds-num">09</span><h3 style="margin:0;">ปุ่ม (Buttons)</h3></div>
+      <p class="ds-note">ปุ่มหลักใช้สีบริบทเมื่ออยู่ในหน้าที่ผูกกับพื้นที่หนึ่ง หรือไล่สีแบรนด์เมื่อเป็นการกระทำที่ไม่ผูกบริบท</p>
+      <div class="ds-row" style="align-items:center;">
+        <button class="btn btn-primary" style="background:var(--priv);border:0;"><i class="ph-duotone ph-plus"></i>เพิ่มในคลังของฉัน</button>
+        <button class="btn btn-primary" style="background:var(--fam);border:0;"><i class="ph-duotone ph-upload-simple"></i>อัปโหลดไฟล์</button>
+        <button class="btn btn-primary" style="background:var(--grad);border:0;white-space:nowrap;"><i class="ph-duotone ph-plus"></i>สร้างงานใหม่</button>
+        <button class="btn btn-secondary">ยกเลิก</button>
+        <button class="btn btn-ghost">ดูทั้งหมด</button>
+        <button class="btn btn-icon btn-secondary"><i class="ph-duotone ph-funnel"></i></button>
+      </div>
+    </div>
+
+    <div class="ds-sec">
+      <div class="ds-h"><span class="ds-num">10</span><h3 style="margin:0;">การนำทาง (Navigation)</h3></div>
+      <p class="ds-note">เดสก์ท็อป: แถบบนข้อความล้วน หัวข้อที่เลือกมีเส้นใต้สีบริบทของหน้านั้น · มือถือ: แถบล่าง 4 ปุ่ม ไอคอน+คำ เป้าแตะสูงสุด ≥44px เสมอ ไม่ย่อจากเดสก์ท็อป</p>
+      <div class="ds-row" style="align-items:flex-start;">
+        <div style="display:flex;gap:22px;padding:14px 0;border-bottom:1px solid var(--color-divider);width:340px;">
+          <span style="font-size:14px;border-bottom:2px solid var(--priv);padding-bottom:14px;margin-bottom:-15px;color:var(--priv);">หน้าหลัก</span>
+          <span style="font-size:14px;opacity:.6;">คลังไฟล์</span>
+          <span style="font-size:14px;opacity:.6;">งาน</span>
+        </div>
+        <div style="width:260px;display:flex;justify-content:space-around;padding:10px 6px;border:1px solid var(--color-divider);">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:56px;min-height:44px;color:var(--fam);white-space:nowrap;"><i class="ph-duotone ph-folders" style="font-size:21px;"></i><span style="font-size:10.5px;font-weight:600;">คลังไฟล์</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:56px;min-height:44px;opacity:.55;white-space:nowrap;"><i class="ph-duotone ph-check-square" style="font-size:21px;"></i><span style="font-size:10.5px;">งาน</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-sec">
+      <div class="ds-h"><span class="ds-num">11</span><h3 style="margin:0;">ไอคอน (Iconography)</h3></div>
+      <p class="ds-note">Phosphor Duotone เท่านั้น ทำหน้าที่บอกประเภท/การกระทำ ไม่ใช้เพื่อตกแต่ง — สีไอคอนไฟล์ตามบริบทเจ้าของ ไอคอนอื่น ๆ ใช้สีข้อความปกติหรือจางลง</p>
+      <div class="ds-row" style="font-size:24px;color:var(--color-text);opacity:.75;">
+        <i class="ph-duotone ph-house"></i><i class="ph-duotone ph-folders"></i><i class="ph-duotone ph-check-square"></i><i class="ph-duotone ph-calendar-blank"></i>
+        <i class="ph-duotone ph-magnifying-glass"></i><i class="ph-duotone ph-gear"></i><i class="ph-duotone ph-file-pdf"></i><i class="ph-duotone ph-file-doc"></i>
+        <i class="ph-duotone ph-image"></i><i class="ph-duotone ph-bell"></i><i class="ph-duotone ph-lock-key"></i><i class="ph-duotone ph-users-three"></i>
+        <i class="ph-duotone ph-chat-circle-text"></i><i class="ph-duotone ph-upload-simple"></i><i class="ph-duotone ph-funnel"></i><i class="ph-duotone ph-check-circle"></i>
+      </div>
+    </div>
+
+    <div class="ds-sec">
+      <div class="ds-h"><span class="ds-num">12</span><h3 style="margin:0;">น้ำเสียงเนื้อหา (Tone of voice)</h3></div>
+      <p class="ds-note">เป็นกันเองแบบผู้ใหญ่ กระชับ ไม่ทางการเกินไป และไม่กระตุ้นความสนุกเกินความจำเป็น</p>
+      <table class="table" style="max-width:760px;">
+        <thead><tr><th>หลีกเลี่ยง</th><th>ใช้แทน</th></tr></thead>
+        <tbody>
+          <tr><td style="opacity:.5;">สู้ๆนะ</td><td>วันนี้มีงาน 2 รายการที่ต้องจัดการ</td></tr>
+          <tr><td style="opacity:.5;">จ่ายค่าไฟก่อนโดนตัด</td><td>ชำระค่าไฟเดือนกันยายน</td></tr>
+          <tr><td style="opacity:.5;">เก็บให้เรียบร้อยแล้วน้า!</td><td>บันทึกเข้าคลังแล้ว</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/duotone/style.css">
+<style>
+body{margin:0;background:#F3F1E7;font-family:'Source Serif 4',Georgia,serif;}
+a{color:#7FB9DE;text-decoration:none;}
+a:hover{color:#5883B4;}
+input,select,textarea,button{font-family:'Source Serif 4',Georgia,serif;}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:#F3F1E7;color:#101820;font-family:'Source Serif 4',Georgia,serif;--priv:#7FB9DE;--priv-tint:#E8F2F9;--priv-hover:#6A9EC9;--priv-press:#5883B4;--fam:#F28A45;--fam-tint:#FDF0E8;--fam-hover:#D67635;--fam-press:#B95E2B;--status-progress:#1D4ED8;--status-progress-tint:#DBEAFE;--status-progress-border:#93C5FD;--status-duesoon:#B45309;--status-duesoon-tint:#FEF3C7;--status-duesoon-border:#FCD34D;--status-overdue:#B91C1C;--status-overdue-tint:#FEE2E2;--status-overdue-border:#FCA5A5;--status-done:#166534;--status-done-tint:#DCFCE7;--status-done-border:#86EFAC;--status-cancelled:#4B5563;--status-cancelled-tint:#F3F4F6;--status-cancelled-border:#D1D5DB;--surface:#FFFDF8;--surface-muted:#FAF9F5;--divider:#EFEDE6;--text2:#6B6A63;--brand:#F6BE5C;">
+
+  <!-- Prototype control bar (not part of product UI) -->
+  <div style="position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:8px 16px;background:#1a1a1a;color:#fff;font:12px/1.4 ui-monospace,Menlo,monospace;">
+    <span style="opacity:.55;">ต้นแบบ:</span>
+    <div style="display:flex;gap:2px;">
+      <button onClick="{{ setDeviceDesktop }}" style="padding:5px 10px;border-radius:5px 0 0 5px;border:1px solid rgba(255,255,255,.25);cursor:pointer;font:inherit;background:{{ desktopBtnBg }};color:{{ desktopBtnColor }};">เดสก์ท็อป</button>
+      <button onClick="{{ setDeviceMobile }}" style="padding:5px 10px;border-radius:0 5px 5px 0;border:1px solid rgba(255,255,255,.25);border-left:0;cursor:pointer;font:inherit;background:{{ mobileBtnBg }};color:{{ mobileBtnColor }};">มือถือ</button>
+    </div>
+    <span style="opacity:.3;">|</span>
+    <button onClick="{{ goHomeQuick }}" style="background:none;border:0;color:#fff;opacity:.75;cursor:pointer;font:inherit;">หน้าหลัก</button>
+    <button onClick="{{ goLockerQuick }}" style="background:none;border:0;color:#fff;opacity:.75;cursor:pointer;font:inherit;">คลังไฟล์</button>
+    <button onClick="{{ goTasksQuick }}" style="background:none;border:0;color:#fff;opacity:.75;cursor:pointer;font:inherit;">งาน</button>
+    <button onClick="{{ goCalendarQuick }}" style="background:none;border:0;color:#fff;opacity:.75;cursor:pointer;font:inherit;">ปฏิทิน</button>
+    <button onClick="{{ goSettingsQuick }}" style="background:none;border:0;color:#fff;opacity:.75;cursor:pointer;font:inherit;">ตั้งค่า</button>
+    <span style="opacity:.3;">|</span>
+    <button onClick="{{ resetPrototype }}" style="background:none;border:1px solid rgba(255,255,255,.25);border-radius:5px;padding:5px 10px;color:#fff;opacity:.75;cursor:pointer;font:inherit;">รีเซ็ต</button>
+  </div>
+
+  <!-- ===================== DESKTOP ===================== -->
+  <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}">
+    <div style="max-width:1080px;margin:0 auto;padding:0 0 var(--space-8, 40px);">
+      <div style="display:flex;align-items:center;gap:26px;padding:16px 28px;border-bottom:1px solid var(--divider);background:var(--surface);">
+        <span style="display:inline-flex;align-items:center;gap:9px;margin-right:auto;cursor:pointer;" onClick="{{ goHomeQuick }}"><span style="width:18px;height:18px;border-radius:6px;background:var(--brand);flex:none;"></span><span style="font-family:'Source Serif 4',serif;font-weight:600;font-size:17px;">บ้านเรา</span></span>
+        <sc-for list="{{ desktopNavItems }}" as="item" hint-placeholder-count="4">
+          <span onClick="{{ item.onClick }}" style="{{ item.style }}">{{ item.label }}</span>
+        </sc-for>
+        <i class="ph-duotone ph-magnifying-glass" style="font-size:18px;opacity:.6;"></i>
+        <div onClick="{{ goSettingsQuick }}" style="width:30px;height:30px;border-radius:50%;background:var(--priv-tint);color:var(--priv);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;cursor:pointer;">สม</div>
+      </div>
+
+      <div style="padding:30px 28px;">
+
+        <!-- HOME -->
+        <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+          <div style="width:56px;height:3px;border-radius:2px;background:var(--brand);margin-bottom:16px;"></div>
+          <h1 style="font-size:32px;margin-bottom:4px;">สวัสดี, สมลักษณ์</h1>
+          <p style="font-size:14px;opacity:.6;margin:0 0 32px;">{{ homeSummary }}</p>
+          <div style="display:grid;grid-template-columns:1.25fr 1fr;gap:44px;">
+            <div>
+              <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px;">
+                <h5 style="margin:0;">งานที่ต้องจัดการ</h5>
+                <a href="#" onClick="{{ goTasksQuick }}" style="font-size:12px;">ดูทั้งหมด</a>
+              </div>
+              <div style="display:flex;flex-direction:column;">
+                <sc-for list="{{ homeTasks }}" as="task" hint-placeholder-count="3">
+                  <div onClick="{{ task.onClick }}" style="display:flex;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid var(--divider);cursor:pointer;">
+                    <div style="flex:1;">
+                      <div style="font-family:'Source Serif 4',serif;font-weight:600;font-size:15px;">{{ task.title }}</div>
+                      <div style="font-size:12px;opacity:.55;margin-top:2px;">{{ task.subtitle }}</div>
+                    </div>
+                    <span style="{{ task.pillStyle }}">{{ task.pillLabel }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <button onClick="{{ openCreateTask }}" style="margin-top:18px;white-space:nowrap;background:linear-gradient(135deg,#F6BE5C,#F28A45);color:#fff;border:0;font-weight:600;padding:11px 18px;border-radius:8px;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;"><i class="ph-duotone ph-plus"></i>สร้างงานใหม่</button>
+            </div>
+            <div>
+              <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px;">
+                <h5 style="margin:0;">บันทึกล่าสุด</h5>
+                <a href="#" onClick="{{ goLockerQuick }}" style="font-size:12px;">ดูคลังไฟล์</a>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:16px;">
+                <sc-for list="{{ homeFiles }}" as="file" hint-placeholder-count="3">
+                  <div onClick="{{ file.onClick }}" style="display:flex;align-items:center;gap:12px;cursor:pointer;">
+                    <i class="{{ file.icon }}" style="font-size:20px;color:{{ file.color }};"></i>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:13.5px;font-weight:600;font-family:'Source Serif 4',serif;">{{ file.name }}</div>
+                      <div style="font-size:11.5px;opacity:.5;">{{ file.meta }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="margin-top:26px;padding:16px;gap:8px;background:var(--fam-tint);border-radius:8px;display:flex;flex-direction:column;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <i class="ph-duotone ph-chat-circle-text" style="font-size:17px;color:var(--fam);"></i>
+                  <span style="font-family:'Source Serif 4',serif;font-weight:600;font-size:13.5px;">บันทึกจาก LINE</span>
+                </div>
+                <div style="font-size:12.5px;line-height:1.6;opacity:.75;">เอกสารในกลุ่มจะถูกบันทึกอัตโนมัติ ส่วนรูปภาพให้ตอบกลับรูปนั้นด้วย <strong>#เก็บ</strong> · สร้างงานด้วย <strong>#งาน</strong></div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- LOCKER -->
+        <sc-if value="{{ isLocker }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:26px;margin-bottom:14px;">
+            <span onClick="{{ setLockerTabPrivate }}" style="{{ lockerTabPrivateStyle }}">ของฉัน</span>
+            <span onClick="{{ setLockerTabFamily }}" style="{{ lockerTabFamilyStyle }}">ครอบครัว</span>
+          </div>
+          <h1 style="font-size:28px;margin:0 0 4px;">{{ lockerTitle }}</h1>
+          <p style="font-size:13px;opacity:.55;margin:0 0 22px;">{{ lockerSubtitle }}</p>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead><tr style="border-bottom:1px solid var(--divider);"><th style="text-align:left;padding:8px 0;font-size:11.5px;opacity:.5;font-weight:600;width:48%;">ชื่อไฟล์</th><th style="text-align:left;padding:8px 0;font-size:11.5px;opacity:.5;font-weight:600;">ชนิด</th><th style="text-align:left;padding:8px 0;font-size:11.5px;opacity:.5;font-weight:600;">ผู้บันทึก</th><th style="text-align:right;padding:8px 0;font-size:11.5px;opacity:.5;font-weight:600;">วันที่</th></tr></thead>
+            <tbody>
+              <sc-for list="{{ currentLockerFiles }}" as="file" hint-placeholder-count="4">
+                <tr onClick="{{ file.onClick }}" style="border-bottom:1px solid var(--divider);cursor:pointer;">
+                  <td style="padding:12px 0;"><div style="display:flex;align-items:center;gap:10px;"><i class="{{ file.icon }}" style="font-size:19px;color:{{ file.color }};"></i><div><div style="font-family:'Source Serif 4',serif;font-weight:600;font-size:14px;">{{ file.name }}</div><div style="font-size:11.5px;opacity:.5;">{{ file.size }}</div></div></div></td>
+                  <td style="font-size:12.5px;opacity:.7;">{{ file.type }}</td>
+                  <td style="font-size:12.5px;">{{ file.by }}</td>
+                  <td style="text-align:right;font-size:12.5px;opacity:.65;">{{ file.date }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </sc-if>
+
+        <!-- TASKS -->
+        <sc-if value="{{ isTasks }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px;">
+            <div>
+              <div style="display:flex;gap:24px;margin-bottom:14px;">
+                <sc-for list="{{ taskFilterTabs }}" as="tab" hint-placeholder-count="3">
+                  <span onClick="{{ tab.onClick }}" style="{{ tab.style }}">{{ tab.label }}</span>
+                </sc-for>
+              </div>
+              <h1 style="font-size:28px;margin:0 0 4px;">งานทั้งหมด</h1>
+              <p style="font-size:13px;opacity:.55;margin:0;">{{ taskListSummary }}</p>
+            </div>
+            <button onClick="{{ openCreateTask }}" style="background:linear-gradient(135deg,#F6BE5C,#F28A45);color:#fff;white-space:nowrap;flex:none;font-weight:600;border:0;padding:11px 18px;border-radius:8px;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;"><i class="ph-duotone ph-plus"></i>สร้างงานใหม่</button>
+          </div>
+          <sc-if value="{{ hasFilteredTasks }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;">
+              <sc-for list="{{ filteredTasks }}" as="task" hint-placeholder-count="5">
+                <div onClick="{{ task.onClick }}" style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--divider);cursor:pointer;">
+                  <div style="flex:1;">
+                    <div style="font-family:'Source Serif 4',serif;font-weight:600;font-size:15px;">{{ task.title }}</div>
+                    <div style="font-size:12px;opacity:.55;margin-top:2px;">{{ task.subtitle }}</div>
+                  </div>
+                  <span style="{{ task.pillStyle }}">{{ task.pillLabel }}</span>
+                  <i class="ph-duotone ph-caret-right" style="font-size:15px;opacity:.3;"></i>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ noFilteredTasks }}" hint-placeholder-val="{{ false }}">
+            <p style="opacity:.55;font-size:14px;">ไม่มีงานในหมวดนี้</p>
+          </sc-if>
+        </sc-if>
+
+        <!-- TASK DETAIL -->
+        <sc-if value="{{ isTaskDetail }}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{ hasSelectedTask }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;">
+              <i class="ph-duotone ph-arrow-left" style="font-size:18px;opacity:.7;cursor:pointer;" onClick="{{ backFromTaskDetail }}"></i>
+              <span style="font-family:'Source Serif 4',serif;font-weight:600;font-size:16px;">รายละเอียดงาน</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:40px;max-width:900px;">
+              <div style="display:flex;flex-direction:column;gap:20px;">
+                <div>
+                  <div style="font-size:12px;font-weight:600;opacity:.55;margin-bottom:6px;">ชื่องาน</div>
+                  <div style="border:1px solid var(--divider);border-radius:8px;padding:11px 13px;font-size:15px;font-family:'Source Serif 4',serif;font-weight:600;">{{ selectedTask.title }}</div>
+                </div>
+                <div>
+                  <div style="font-size:12px;font-weight:600;opacity:.55;margin-bottom:6px;">รายละเอียดเพิ่มเติม</div>
+                  <div style="border:1px solid var(--divider);border-radius:8px;padding:11px 13px;font-size:13.5px;line-height:1.6;opacity:.75;min-height:60px;">{{ selectedTask.notesDisplay }}</div>
+                </div>
+                <div data-reminder-picker="detail">
+                  <div style="font-size:12px;font-weight:600;opacity:.55;margin-bottom:8px;">การแจ้งเตือน</div>
+                  <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                    <sc-for list="{{ selectedTask.reminders }}" as="rem" hint-placeholder-count="1">
+                      <span style="font-size:12.5px;font-weight:600;background:var(--priv-tint);color:var(--priv-press);padding:5px 8px 5px 12px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;">{{ rem.label }}<i class="ph-duotone ph-x" style="cursor:pointer;font-size:13px;" onClick="{{ rem.onRemove }}"></i></span>
+                    </sc-for>
+                    <sc-if value="{{ selectedTask.canAddReminder }}" hint-placeholder-val="{{ true }}">
+                      <span onClick="{{ toggleReminderPicker }}" style="font-size:12.5px;font-weight:600;padding:5px 12px;border-radius:999px;border:1px dashed var(--divider);color:var(--text2);cursor:pointer;">+ เพิ่มการแจ้งเตือน</span>
+                    </sc-if>
+                  </div>
+                  <sc-if value="{{ reminderAddOpen }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;flex-direction:column;gap:2px;margin-top:10px;border:1px solid var(--divider);border-radius:8px;padding:8px;background:var(--surface-muted);max-width:280px;">
+                      <sc-for list="{{ detailReminderOptions }}" as="opt" hint-placeholder-count="2">
+                        <span onClick="{{ opt.onClick }}" style="font-size:13px;padding:8px 10px;border-radius:6px;cursor:pointer;">{{ opt.label }}</span>
+                      </sc-for>
+                      <span onClick="{{ toggleReminderPicker }}" style="font-size:12px;opacity:.5;padding:8px 10px;cursor:pointer;border-top:1px solid var(--divider);margin-top:4px;">ปิด</span>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:20px;">
+                <div>
+                  <div style="font-size:12px;font-weight:600;opacity:.55;margin-bottom:8px;">พื้นที่</div>
+                  <span style="{{ selectedTask.workspacePillStyle }}">{{ selectedTask.workspaceLabel }}</span>
+                </div>
+                <div>
+                  <div style="font-size:12px;font-weight:600;opacity:.55;margin-bottom:8px;">สถานะ</div>
+                  <span style="{{ selectedTask.pillStyle }}">{{ selectedTask.pillLabel }}</span>
+                </div>
+                <div>
+                  <div style="font-size:12px;font-weight:600;opacity:.55;margin-bottom:8px;">มอบหมายให้</div>
+                  <div style="font-size:13.5px;">{{ selectedTask.assignee }}</div>
+                </div>
+                <div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                    <div style="font-size:12px;font-weight:600;opacity:.55;">กำหนดวันและเวลา</div>
+                    <sc-if value="{{ notEditingDueDate }}" hint-placeholder-val="{{ true }}">
+                      <span onClick="{{ startEditDueDate }}" title="แก้ไขวันครบกำหนด" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;margin:-11px -11px -11px 0;cursor:pointer;border-radius:8px;">
+                        <i class="ph-duotone ph-pencil-simple" style="font-size:15px;opacity:.6;"></i>
+                      </span>
+                    </sc-if>
+                  </div>
+                  <sc-if value="{{ notEditingDueDate }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:flex;align-items:center;gap:8px;border:1px solid var(--divider);border-radius:8px;padding:11px 13px;font-size:14px;"><i class="ph-duotone ph-calendar-blank" style="opacity:.6;"></i>{{ selectedTask.dueLabel }}</div>
+                  </sc-if>
+                  <sc-if value="{{ editingDueDate }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;flex-direction:column;gap:8px;">
+                      <div style="display:flex;gap:8px;">
+                        <input type="date" value="{{ dueDateDraft }}" onChange="{{ onChangeDueDateDraft }}" style="flex:1;border:1px solid var(--divider);border-radius:8px;padding:9px 10px;font-size:13.5px;"/>
+                        <input type="time" value="{{ dueTimeDraft }}" onChange="{{ onChangeDueTimeDraft }}" style="width:110px;border:1px solid var(--divider);border-radius:8px;padding:9px 10px;font-size:13.5px;"/>
+                      </div>
+                      <sc-if value="{{ hasDueDateError }}" hint-placeholder-val="{{ false }}">
+                        <div style="font-size:12px;color:var(--status-overdue);display:flex;align-items:center;gap:5px;"><i class="ph-duotone ph-warning-circle"></i>{{ dueDateError }}</div>
+                      </sc-if>
+                      <div style="display:flex;gap:8px;">
+                        <button onClick="{{ saveDueDate }}" disabled="{{ dueSaveLoading }}" style="{{ dueSaveBtnStyle }}">{{ dueSaveBtnLabel }}</button>
+                        <button onClick="{{ cancelEditDueDate }}" style="border:1px solid var(--divider);background:none;border-radius:8px;padding:9px 16px;font-size:13.5px;cursor:pointer;">ยกเลิก</button>
+                      </div>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+        </sc-if>
+
+        <!-- TASK CREATE -->
+        <sc-if value="{{ isTaskCreate }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;">
+            <i class="ph-duotone ph-arrow-left" style="font-size:18px;opacity:.7;cursor:pointer;" onClick="{{ goTasksQuick }}"></i>
+            <span style="font-family:'Source Serif 4',serif;font-weight:600;font-size:16px;">สร้างงานใหม่</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:40px;max-width:900px;">
+            <div style="display:flex;flex-direction:column;gap:20px;">
+              <div>
+                <div style="font-size:12px;font-weight:600;opacity:.55;margin-bottom:6px;">ชื่องาน *</div>
+                <input value="{{ createForm.title }}" onChange="{{ onChangeCreateTitle }}" placeholder="เช่น ชำระค่าน้ำเดือนตุลาคม" style="width:100%;box-sizing:border-box;border:1px solid var(--divider);border-radius:8px;padding:11px 13px;font-size:15px;"/>
+                <sc-if value="{{ hasCreateTitleError }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:12px;color:var(--status-overdue);display:flex;align-items:center;gap:5px;margin-top:6px;"><i class="ph-duotone ph-warning-circle"></i>{{ createErrors.title }}</div>
+                </sc-if>
+              </div>
+              <div>
+                <div style="font-size:12px;font-weight:600;opacity:.55;margin-bottom:6px;">รายละเอียดเพิ่มเติม</div>
+                <textarea value="{{ createForm.description }}" onChange="{{ onChangeCreateDesc }}" rows="3" style="width:100%;box-sizing:border-box;border:1px solid var(--divider);border-radius:8px;padding:11px 13px;font-size:13.5px;line-height:1.6;resize:vertical;"></textarea>
+              </div>
+              <div data-reminder-picker="create">
+                <div style="font-size:12px;font-weight:600;opacity:.55;margin-bottom:8px;">การแจ้งเตือน</div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                  <sc-for list="{{ createForm.reminders }}" as="rem" hint-placeholder-count="0">
+                    <span style="font-size:12.5px;font-weight:600;background:var(--priv-tint);color:var(--priv-press);padding:5px 8px 5px 12px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;">{{ rem.label }}<i class="ph-duotone ph-x" style="cursor:pointer;font-size:13px;" onClick="{{ rem.onRemove }}"></i></span>
+                  </sc-for>
+                  <sc-if value="{{ canAddCreateReminder }}" hint-placeholder-val="{{ true }}">
+                    <span onClick="{{ toggleCreateReminderPicker }}" style="font-size:12.5px;font-weight:600;padding:5px 12px;border-radius:999px;border:1px dashed var(--divider);color:var(--text2);cursor:pointer;">+ เพิ่มการแจ้งเตือน</span>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ createReminderPickerOpen }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;flex-direction:column;gap:2px;margin-top:10px;border:1px solid var(--divider);border-radius:8px;padding:8px;background:var(--surface-muted);max-width:280px;">
+                    <sc-for list="{{ createReminderOptions }}" as="opt" hint-placeholder-count="2">
+                      <span onClick="{{ opt.onClick }}" style="font-size:13px;padding:8px 10px;border-radius:6px;cursor:pointer;">{{ opt.label }}</span>
+                    </sc-for>
+                    <span onClick="{{ toggleCreateReminderPicker }}" style="font-size:12px;opacity:.5;padding:8px 10px;cursor:pointer;border-top:1px solid var(--divider);margin-top:4px;">ปิด</span>
+                  </div>
+                </sc-if>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:20px;">
+              <div>
+                <div style="font-size:12px;font-weight:600;opacity:.55;margin-bottom:8px;">พื้นที่ *</div>
+                <div style="display:flex;gap:8px;">
+                  <span onClick="{{ selectWorkspacePrivate }}" style="{{ createWorkspacePrivateStyle }}">ของฉัน</span>
+                  <span onClick="{{ selectWorkspaceFamily }}" style="{{ createWorkspaceFamilyStyle }}">ครอบครัวสุขใจ</span>
+                </div>
+                <sc-if value="{{ hasCreateWorkspaceError }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:12px;color:var(--status-overdue);display:flex;align-items:center;gap:5px;margin-top:6px;"><i class="ph-duotone ph-warning-circle"></i>{{ createErrors.workspace }}</div>
+                </sc-if>
+              </div>
+              <sc-if value="{{ createIsFamily }}" hint-placeholder-val="{{ false }}">
+                <div>
+                  <div style="font-size:12px;font-weight:600;opacity:.55;margin-bottom:8px;">มอบหมายให้</div>
+                  <select value="{{ createForm.assignee }}" onChange="{{ onChangeCreateAssignee }}" style="width:100%;box-sizing:border-box;border:1px solid var(--divider);border-radius:8px;padding:10px 12px;font-size:13.5px;">
+                    <sc-for list="{{ assigneeOptions }}" as="opt" hint-placeholder-count="5">
+                      <option value="{{ opt.value }}">{{ opt.label }}</option>
+                    </sc-for>
+                  </select>
+                </div>
+              </sc-if>
+              <div>
+                <div style="font-size:12px;font-weight:600;opacity:.55;margin-bottom:6px;">กำหนดวันและเวลา *</div>
+                <div style="display:flex;gap:8px;">
+                  <input type="date" value="{{ createForm.dueDate }}" onChange="{{ onChangeCreateDueDate }}" style="flex:1;border:1px solid var(--divider);border-radius:8px;padding:11px 10px;font-size:13.5px;"/>
+                  <input type="time" value="{{ createForm.dueTime }}" onChange="{{ onChangeCreateDueTime }}" style="width:110px;border:1px solid var(--divider);border-radius:8px;padding:11px 10px;font-size:13.5px;"/>
+                </div>
+                <sc-if value="{{ hasCreateDueDateError }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:12px;color:var(--status-overdue);display:flex;align-items:center;gap:5px;margin-top:6px;"><i class="ph-duotone ph-warning-circle"></i>{{ createErrors.dueDate }}</div>
+                </sc-if>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <button onClick="{{ saveCreateTask }}" style="{{ createSaveBtnStyle }}">{{ createSaveBtnLabel }}</button>
+                <button onClick="{{ goTasksQuick }}" style="border:1px solid var(--divider);background:none;border-radius:8px;padding:11px 18px;font-size:14px;cursor:pointer;">ยกเลิก</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- CALENDAR -->
+        <sc-if value="{{ isCalendar }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <i class="ph-duotone ph-caret-left" style="font-size:16px;opacity:.5;cursor:pointer;padding:10px;" onClick="{{ prevMonth }}" title="เดือนก่อนหน้า"></i>
+              <h1 style="font-size:22px;margin:0;min-width:150px;text-align:center;">{{ calendarTitle }}</h1>
+              <i class="ph-duotone ph-caret-right" style="font-size:16px;opacity:.5;cursor:pointer;padding:10px;" onClick="{{ nextMonth }}" title="เดือนถัดไป"></i>
+            </div>
+            <button onClick="{{ openCreateTask }}" style="background:linear-gradient(135deg,#F6BE5C,#F28A45);color:#fff;white-space:nowrap;font-weight:600;border:0;padding:10px 16px;border-radius:8px;font-size:13.5px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;"><i class="ph-duotone ph-plus"></i>สร้างงานใหม่</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);border-top:1px solid var(--divider);border-left:1px solid var(--divider);">
+            <sc-for list="{{ weekdayLabels }}" as="wd" hint-placeholder-count="7">
+              <div style="padding:8px;font-size:11.5px;font-weight:600;opacity:.5;text-align:center;border-right:1px solid var(--divider);border-bottom:1px solid var(--divider);">{{ wd }}</div>
+            </sc-for>
+            <sc-for list="{{ calendarCells }}" as="cell" hint-placeholder-count="35">
+              <div onClick="{{ cell.onClick }}" style="{{ cell.cellStyle }}">
+                <div style="{{ cell.dayStyle }}">{{ cell.day }}</div>
+                <sc-for list="{{ cell.tasks }}" as="t" hint-placeholder-count="1">
+                  <div style="{{ t.dotStyle }}">{{ t.shortLabel }}</div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top:22px;">
+            <h5 style="margin:0 0 12px;">{{ selectedDateLabel }}</h5>
+            <sc-if value="{{ hasSelectedDateTasks }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;">
+                <sc-for list="{{ selectedDateTasks }}" as="task" hint-placeholder-count="1">
+                  <div onClick="{{ task.onClick }}" style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--divider);cursor:pointer;">
+                    <div style="flex:1;"><div style="font-family:'Source Serif 4',serif;font-weight:600;font-size:14.5px;">{{ task.title }}</div><div style="font-size:12px;opacity:.55;margin-top:2px;">{{ task.subtitle }}</div></div>
+                    <span style="{{ task.pillStyle }}">{{ task.pillLabel }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ noSelectedDateTasks }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px 0;">
+                <i class="ph-duotone ph-coffee" style="font-size:26px;opacity:.3;"></i>
+                <div style="font-size:13px;opacity:.5;">ไม่มีงานในวันนี้</div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <!-- SETTINGS -->
+        <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:200px 1fr;gap:0;">
+            <div style="padding-right:16px;border-right:1px solid var(--divider);display:flex;flex-direction:column;gap:2px;">
+              <sc-for list="{{ settingsTabsList }}" as="tab" hint-placeholder-count="4">
+                <div onClick="{{ tab.onClick }}" style="{{ tab.style }}"><i class="{{ tab.icon }}"></i>{{ tab.label }}</div>
+              </sc-for>
+            </div>
+            <div style="padding-left:32px;">
+              <sc-if value="{{ settingsIsGeneral }}" hint-placeholder-val="{{ true }}">
+                <h1 style="font-size:22px;margin:0 0 20px;">ทั่วไป</h1>
+                <div style="display:flex;align-items:center;gap:16px;margin-bottom:28px;">
+                  <div style="width:56px;height:56px;border-radius:50%;background:var(--priv-tint);color:var(--priv);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;">สม</div>
+                  <div><div style="font-family:'Source Serif 4',serif;font-weight:600;font-size:16px;">สมลักษณ์ ใจดี</div><div style="font-size:12.5px;opacity:.55;">somluck@example.com</div></div>
+                  <button disabled="{{ true }}" title="ยังไม่เปิดใช้งานในต้นแบบนี้" style="margin-left:auto;white-space:nowrap;border:1px solid var(--divider);background:none;border-radius:8px;padding:9px 16px;font-size:13.5px;opacity:.4;cursor:not-allowed;">แก้ไขโปรไฟล์</button>
+                </div>
+                <h5 style="margin:0 0 12px;">การแจ้งเตือน</h5>
+                <div style="display:flex;flex-direction:column;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--divider);">
+                    <span style="font-size:13.5px;">แจ้งเตือนงานใกล้กำหนด</span>
+                    <span onClick="{{ toggleNotifDueSoon }}" style="{{ notifDueSoonTrackStyle }}"><span style="{{ notifDueSoonKnobStyle }}"></span></span>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 0;">
+                    <span style="font-size:13.5px;">สรุปกิจกรรมประจำสัปดาห์</span>
+                    <span onClick="{{ toggleNotifWeekly }}" style="{{ notifWeeklyTrackStyle }}"><span style="{{ notifWeeklyKnobStyle }}"></span></span>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ settingsIsFamily }}" hint-placeholder-val="{{ false }}">
+                <h1 style="font-size:22px;margin:0 0 20px;">ครอบครัวสุขใจ</h1>
+                <p style="font-size:13px;opacity:.55;margin:0 0 18px;">สมาชิกทั้ง 4 คนเข้าถึงคลังไฟล์และงานของครอบครัวนี้ได้</p>
+                <div style="display:flex;flex-direction:column;">
+                  <sc-for list="{{ membersList }}" as="m" hint-placeholder-count="4">
+                    <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--divider);">
+                      <div style="width:32px;height:32px;border-radius:50%;background:var(--fam-tint);color:var(--fam);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;">{{ m.initials }}</div>
+                      <div style="flex:1;font-size:13.5px;">{{ m.name }}</div>
+                      <span style="font-size:12px;opacity:.5;">{{ m.role }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ settingsIsLine }}" hint-placeholder-val="{{ false }}">
+                <h1 style="font-size:22px;margin:0 0 20px;">การเชื่อมต่อ LINE</h1>
+                <div style="display:flex;align-items:center;gap:14px;padding:14px;border:1px solid var(--divider);border-radius:8px;">
+                  <i class="ph-duotone ph-chat-circle-text" style="font-size:26px;color:var(--fam);"></i>
+                  <div style="flex:1;"><div style="font-size:14px;font-weight:600;font-family:'Source Serif 4',serif;">เชื่อมต่อกับกลุ่ม "ครอบครัวสุขใจ" แล้ว</div><div style="font-size:12px;opacity:.55;">พิมพ์ #งาน หรือ #เก็บ ในแชทเพื่อบันทึกอัตโนมัติ</div></div>
+                  <button disabled="{{ true }}" title="ยังไม่เปิดใช้งานในต้นแบบนี้" style="border:1px solid var(--divider);background:none;border-radius:8px;padding:9px 14px;font-size:13px;opacity:.4;cursor:not-allowed;white-space:nowrap;">ยกเลิกการเชื่อมต่อ</button>
+                </div>
+              </sc-if>
+              <sc-if value="{{ settingsIsNotif }}" hint-placeholder-val="{{ false }}">
+                <h1 style="font-size:22px;margin:0 0 20px;">การแจ้งเตือน</h1>
+                <div style="display:flex;flex-direction:column;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--divider);">
+                    <span style="font-size:13.5px;">แจ้งเตือนงานใกล้กำหนด</span>
+                    <span onClick="{{ toggleNotifDueSoon }}" style="{{ notifDueSoonTrackStyle }}"><span style="{{ notifDueSoonKnobStyle }}"></span></span>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 0;">
+                    <span style="font-size:13.5px;">สรุปกิจกรรมประจำสัปดาห์</span>
+                    <span onClick="{{ toggleNotifWeekly }}" style="{{ notifWeeklyTrackStyle }}"><span style="{{ notifWeeklyKnobStyle }}"></span></span>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===================== MOBILE ===================== -->
+  <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+    <div style="max-width:390px;margin:0 auto;background:var(--surface);min-height:calc(100vh - 40px);box-shadow:0 0 0 1px var(--divider);position:relative;">
+
+      <sc-if value="{{ mobileShowBack }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--divider);">
+          <i class="ph-duotone ph-arrow-left" style="font-size:18px;opacity:.7;cursor:pointer;" onClick="{{ mobileBackAction }}"></i>
+          <span style="font-family:'Source Serif 4',serif;font-weight:600;font-size:16px;">{{ mobileTitle }}</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{ mobileShowPlainHeader }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--divider);">
+          <span style="display:inline-flex;align-items:center;gap:8px;"><span style="width:16px;height:16px;border-radius:6px;background:var(--brand);flex:none;"></span><span style="font-family:'Source Serif 4',serif;font-weight:600;font-size:16px;">{{ mobileTitle }}</span></span>
+          <div style="display:flex;align-items:center;gap:14px;">
+            <i class="ph-duotone ph-magnifying-glass" style="font-size:20px;opacity:.6;"></i>
+            <div onClick="{{ goSettingsQuick }}" style="width:30px;height:30px;border-radius:50%;background:var(--priv-tint);color:var(--priv);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;cursor:pointer;">สม</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <div style="padding:18px;">
+
+        <!-- HOME -->
+        <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+          <h2 style="font-size:22px;margin-bottom:4px;">สวัสดี, สมลักษณ์</h2>
+          <p style="font-size:13px;opacity:.6;margin:0 0 22px;">{{ homeSummary }}</p>
+          <h5 style="margin:0 0 10px;">งานที่ต้องจัดการ</h5>
+          <div style="display:flex;flex-direction:column;margin-bottom:22px;">
+            <sc-for list="{{ homeTasks }}" as="task" hint-placeholder-count="3">
+              <div onClick="{{ task.onClick }}" style="padding:13px 0;border-bottom:1px solid var(--divider);min-height:44px;cursor:pointer;">
+                <div style="font-family:'Source Serif 4',serif;font-weight:600;font-size:15px;">{{ task.title }}</div>
+                <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;">
+                  <span style="{{ task.pillStyle }}">{{ task.pillLabel }}</span>
+                  <span style="font-size:12px;opacity:.55;">{{ task.subtitle }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <h5 style="margin:0 0 10px;">บันทึกล่าสุด</h5>
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <sc-for list="{{ homeFiles }}" as="file" hint-placeholder-count="3">
+              <div onClick="{{ file.onClick }}" style="display:flex;align-items:center;gap:12px;min-height:44px;cursor:pointer;">
+                <i class="{{ file.icon }}" style="font-size:22px;color:{{ file.color }};"></i>
+                <div style="flex:1;min-width:0;"><div style="font-size:13.5px;font-weight:600;font-family:'Source Serif 4',serif;">{{ file.name }}</div><div style="font-size:11.5px;opacity:.5;">{{ file.meta }}</div></div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- LOCKER -->
+        <sc-if value="{{ isLocker }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;border-bottom:1px solid var(--divider);margin-bottom:16px;">
+            <div onClick="{{ setLockerTabPrivate }}" style="{{ lockerTabPrivateMobileStyle }}">ของฉัน</div>
+            <div onClick="{{ setLockerTabFamily }}" style="{{ lockerTabFamilyMobileStyle }}">ครอบครัว</div>
+          </div>
+          <div style="margin-bottom:14px;"><div style="font-family:'Source Serif 4',serif;font-weight:600;font-size:16px;">{{ lockerTitle }}</div><div style="font-size:11.5px;opacity:.5;">{{ lockerSubtitle }}</div></div>
+          <div style="display:flex;flex-direction:column;">
+            <sc-for list="{{ currentLockerFiles }}" as="file" hint-placeholder-count="4">
+              <div onClick="{{ file.onClick }}" style="display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--divider);min-height:44px;cursor:pointer;">
+                <i class="{{ file.icon }}" style="font-size:22px;color:{{ file.color }};"></i>
+                <div style="flex:1;min-width:0;"><div style="font-family:'Source Serif 4',serif;font-weight:600;font-size:14px;">{{ file.name }}</div><div style="font-size:11.5px;opacity:.5;">{{ file.by }} · {{ file.date }} · {{ file.size }}</div></div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- TASKS -->
+        <sc-if value="{{ isTasks }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:14px;overflow-x:auto;padding-bottom:14px;font-size:12px;">
+            <sc-for list="{{ taskFilterTabs }}" as="tab" hint-placeholder-count="3">
+              <span onClick="{{ tab.onClick }}" style="{{ tab.mobileStyle }}">{{ tab.label }}</span>
+            </sc-for>
+          </div>
+          <sc-if value="{{ hasFilteredTasks }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;padding-bottom:76px;">
+              <sc-for list="{{ filteredTasks }}" as="task" hint-placeholder-count="5">
+                <div onClick="{{ task.onClick }}" style="padding:13px 0;border-bottom:1px solid var(--divider);min-height:44px;cursor:pointer;">
+                  <div style="font-family:'Source Serif 4',serif;font-weight:600;font-size:15px;">{{ task.title }}</div>
+                  <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;">
+                    <span style="{{ task.pillStyle }}">{{ task.pillLabel }}</span>
+                    <span style="font-size:12px;opacity:.55;">{{ task.subtitle }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ noFilteredTasks }}" hint-placeholder-val="{{ false }}">
+            <p style="opacity:.55;font-size:14px;">ไม่มีงานในหมวดนี้</p>
+          </sc-if>
+          <button onClick="{{ openCreateTask }}" style="position:absolute;right:16px;bottom:78px;width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#F6BE5C,#F28A45);color:#fff;border:0;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,.18);cursor:pointer;z-index:10;"><i class="ph-duotone ph-plus" style="font-size:20px;"></i></button>
+        </sc-if>
+
+        <!-- TASK DETAIL -->
+        <sc-if value="{{ isTaskDetail }}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{ hasSelectedTask }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;gap:18px;">
+              <div>
+                <div style="font-size:12px;font-weight:600;opacity:.55;margin-bottom:6px;">ชื่องาน</div>
+                <div style="border:1px solid var(--divider);border-radius:8px;padding:11px 13px;font-size:15px;font-family:'Source Serif 4',serif;font-weight:600;">{{ selectedTask.title }}</div>
+              </div>
+              <div>
+                <div style="font-size:12px;font-weight:600;opacity:.55;margin-bottom:8px;">พื้นที่</div>
+                <span style="{{ selectedTask.workspacePillStyle }}">{{ selectedTask.workspaceLabel }}</span>
+              </div>
+              <div>
+                <div style="font-size:12px;font-weight:600;opacity:.55;margin-bottom:8px;">สถานะ</div>
+                <span style="{{ selectedTask.pillStyle }}">{{ selectedTask.pillLabel }}</span>
+              </div>
+              <div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                  <div style="font-size:12px;font-weight:600;opacity:.55;">กำหนดวันและเวลา</div>
+                  <sc-if value="{{ notEditingDueDate }}" hint-placeholder-val="{{ true }}">
+                    <i class="ph-duotone ph-pencil-simple" style="font-size:14px;opacity:.6;cursor:pointer;" onClick="{{ startEditDueDate }}"></i>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ notEditingDueDate }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex;align-items:center;gap:8px;border:1px solid var(--divider);border-radius:8px;padding:11px 13px;font-size:14px;min-height:44px;"><i class="ph-duotone ph-calendar-blank" style="opacity:.6;"></i>{{ selectedTask.dueLabel }}</div>
+                </sc-if>
+                <sc-if value="{{ editingDueDate }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;flex-direction:column;gap:8px;">
+                    <input type="date" value="{{ dueDateDraft }}" onChange="{{ onChangeDueDateDraft }}" style="border:1px solid var(--divider);border-radius:8px;padding:11px 10px;font-size:13.5px;"/>
+                    <input type="time" value="{{ dueTimeDraft }}" onChange="{{ onChangeDueTimeDraft }}" style="border:1px solid var(--divider);border-radius:8px;padding:11px 10px;font-size:13.5px;"/>
+                    <sc-if value="{{ hasDueDateError }}" hint-placeholder-val="{{ false }}">
+                      <div style="font-size:12px;color:var(--status-overdue);display:flex;align-items:center;gap:5px;"><i class="ph-duotone ph-warning-circle"></i>{{ dueDateError }}</div>
+                    </sc-if>
+                    <div style="display:flex;gap:8px;">
+                      <button onClick="{{ saveDueDate }}" disabled="{{ dueSaveLoading }}" style="{{ dueSaveBtnStyle }}">{{ dueSaveBtnLabel }}</button>
+                      <button onClick="{{ cancelEditDueDate }}" style="border:1px solid var(--divider);background:none;border-radius:8px;padding:9px 16px;font-size:13.5px;cursor:pointer;">ยกเลิก</button>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+              <div>
+                <div style="font-size:12px;font-weight:600;opacity:.55;margin-bottom:8px;">มอบหมายให้</div>
+                <div style="font-size:13.5px;">{{ selectedTask.assignee }}</div>
+              </div>
+              <div data-reminder-picker="detail">
+                <div style="font-size:12px;font-weight:600;opacity:.55;margin-bottom:8px;">การแจ้งเตือน</div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                  <sc-for list="{{ selectedTask.reminders }}" as="rem" hint-placeholder-count="1">
+                    <span style="font-size:12.5px;font-weight:600;background:var(--priv-tint);color:var(--priv-press);padding:6px 8px 6px 12px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;">{{ rem.label }}<i class="ph-duotone ph-x" style="cursor:pointer;font-size:13px;" onClick="{{ rem.onRemove }}"></i></span>
+                  </sc-for>
+                  <sc-if value="{{ selectedTask.canAddReminder }}" hint-placeholder-val="{{ true }}">
+                    <span onClick="{{ toggleReminderPicker }}" style="font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:999px;border:1px dashed var(--divider);color:var(--text2);cursor:pointer;">+ เพิ่มการแจ้งเตือน</span>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ reminderAddOpen }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;flex-direction:column;gap:2px;margin-top:10px;border:1px solid var(--divider);border-radius:8px;padding:8px;background:var(--surface-muted);">
+                    <sc-for list="{{ detailReminderOptions }}" as="opt" hint-placeholder-count="2">
+                      <span onClick="{{ opt.onClick }}" style="font-size:13px;padding:8px 10px;border-radius:6px;cursor:pointer;">{{ opt.label }}</span>
+                    </sc-for>
+                    <span onClick="{{ toggleReminderPicker }}" style="font-size:12px;opacity:.5;padding:8px 10px;cursor:pointer;border-top:1px solid var(--divider);margin-top:4px;">ปิด</span>
+                  </div>
+                </sc-if>
+              </div>
+              <div>
+                <div style="font-size:12px;font-weight:600;opacity:.55;margin-bottom:6px;">รายละเอียดเพิ่มเติม</div>
+                <div style="border:1px solid var(--divider);border-radius:8px;padding:11px 13px;font-size:13.5px;line-height:1.6;opacity:.75;min-height:50px;">{{ selectedTask.notesDisplay }}</div>
+              </div>
+            </div>
+          </sc-if>
+        </sc-if>
+
+        <!-- TASK CREATE -->
+        <sc-if value="{{ isTaskCreate }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:18px;">
+            <div>
+              <div style="font-size:12px;font-weight:600;opacity:.55;margin-bottom:6px;">ชื่องาน *</div>
+              <input value="{{ createForm.title }}" onChange="{{ onChangeCreateTitle }}" placeholder="เช่น ชำระค่าน้ำเดือนตุลาคม" style="width:100%;box-sizing:border-box;border:1px solid var(--divider);border-radius:8px;padding:11px 13px;font-size:15px;"/>
+            </div>
+            <div>
+              <div style="font-size:12px;font-weight:600;opacity:.55;margin-bottom:8px;">พื้นที่ *</div>
+              <div style="display:flex;gap:8px;">
+                <span onClick="{{ selectWorkspacePrivate }}" style="{{ createWorkspacePrivateStyle }}">ของฉัน</span>
+                <span onClick="{{ selectWorkspaceFamily }}" style="{{ createWorkspaceFamilyStyle }}">ครอบครัวสุขใจ</span>
+              </div>
+            </div>
+            <sc-if value="{{ createIsFamily }}" hint-placeholder-val="{{ false }}">
+              <div>
+                <div style="font-size:12px;font-weight:600;opacity:.55;margin-bottom:8px;">มอบหมายให้</div>
+                <select value="{{ createForm.assignee }}" onChange="{{ onChangeCreateAssignee }}" style="width:100%;box-sizing:border-box;border:1px solid var(--divider);border-radius:8px;padding:11px 12px;font-size:13.5px;">
+                  <sc-for list="{{ assigneeOptions }}" as="opt" hint-placeholder-count="5">
+                    <option value="{{ opt.value }}">{{ opt.label }}</option>
+                  </sc-for>
+                </select>
+              </div>
+            </sc-if>
+            <div>
+              <div style="font-size:12px;font-weight:600;opacity:.55;margin-bottom:6px;">กำหนดวันและเวลา *</div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <input type="date" value="{{ createForm.dueDate }}" onChange="{{ onChangeCreateDueDate }}" style="border:1px solid var(--divider);border-radius:8px;padding:11px 10px;font-size:13.5px;min-height:44px;box-sizing:border-box;"/>
+                <input type="time" value="{{ createForm.dueTime }}" onChange="{{ onChangeCreateDueTime }}" style="border:1px solid var(--divider);border-radius:8px;padding:11px 10px;font-size:13.5px;min-height:44px;box-sizing:border-box;"/>
+              </div>
+              <sc-if value="{{ hasCreateDueDateError }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:12px;color:var(--status-overdue);display:flex;align-items:center;gap:5px;margin-top:6px;"><i class="ph-duotone ph-warning-circle"></i>{{ createErrors.dueDate }}</div>
+              </sc-if>
+            </div>
+            <div data-reminder-picker="create">
+              <div style="font-size:12px;font-weight:600;opacity:.55;margin-bottom:8px;">การแจ้งเตือน</div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                <sc-for list="{{ createForm.reminders }}" as="rem" hint-placeholder-count="0">
+                  <span style="font-size:12.5px;font-weight:600;background:var(--priv-tint);color:var(--priv-press);padding:6px 8px 6px 12px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;">{{ rem.label }}<i class="ph-duotone ph-x" style="cursor:pointer;font-size:13px;" onClick="{{ rem.onRemove }}"></i></span>
+                </sc-for>
+                <sc-if value="{{ canAddCreateReminder }}" hint-placeholder-val="{{ true }}">
+                  <span onClick="{{ toggleCreateReminderPicker }}" style="font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:999px;border:1px dashed var(--divider);color:var(--text2);cursor:pointer;">+ เพิ่มการแจ้งเตือน</span>
+                </sc-if>
+              </div>
+              <sc-if value="{{ createReminderPickerOpen }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:2px;margin-top:10px;border:1px solid var(--divider);border-radius:8px;padding:8px;background:var(--surface-muted);">
+                  <sc-for list="{{ createReminderOptions }}" as="opt" hint-placeholder-count="2">
+                    <span onClick="{{ opt.onClick }}" style="font-size:13px;padding:8px 10px;border-radius:6px;cursor:pointer;">{{ opt.label }}</span>
+                  </sc-for>
+                  <span onClick="{{ toggleCreateReminderPicker }}" style="font-size:12px;opacity:.5;padding:8px 10px;cursor:pointer;border-top:1px solid var(--divider);margin-top:4px;">ปิด</span>
+                </div>
+              </sc-if>
+            </div>
+            <div>
+              <div style="font-size:12px;font-weight:600;opacity:.55;margin-bottom:6px;">รายละเอียดเพิ่มเติม</div>
+              <textarea value="{{ createForm.description }}" onChange="{{ onChangeCreateDesc }}" rows="3" style="width:100%;box-sizing:border-box;border:1px solid var(--divider);border-radius:8px;padding:11px 13px;font-size:13.5px;line-height:1.6;resize:vertical;"></textarea>
+            </div>
+            <button onClick="{{ saveCreateTask }}" style="{{ createSaveBtnStyle }}">{{ createSaveBtnLabel }}</button>
+          </div>
+        </sc-if>
+
+        <!-- CALENDAR -->
+        <sc-if value="{{ isCalendar }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <i class="ph-duotone ph-caret-left" style="font-size:16px;opacity:.5;cursor:pointer;padding:12px;" onClick="{{ prevWeek }}" title="สัปดาห์ก่อนหน้า"></i>
+            <span style="font-family:'Source Serif 4',serif;font-weight:600;font-size:15px;">{{ mobileWeekLabel }}</span>
+            <i class="ph-duotone ph-caret-right" style="font-size:16px;opacity:.5;cursor:pointer;padding:12px;" onClick="{{ nextWeek }}" title="สัปดาห์ถัดไป"></i>
+          </div>
+          <div style="display:flex;gap:8px;padding-bottom:4px;overflow-x:auto;">
+            <sc-for list="{{ mobileWeekCells }}" as="cell" hint-placeholder-count="7">
+              <div onClick="{{ cell.onClick }}" style="{{ cell.mobileStyle }}"><span style="font-size:10.5px;opacity:.7;">{{ cell.wd }}</span><span style="font-size:13px;font-weight:700;">{{ cell.day }}</span></div>
+            </sc-for>
+          </div>
+          <div style="margin-top:16px;">
+            <h5 style="margin:0 0 10px;">{{ selectedDateLabel }}</h5>
+            <sc-if value="{{ hasSelectedDateTasks }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;">
+                <sc-for list="{{ selectedDateTasks }}" as="task" hint-placeholder-count="1">
+                  <div onClick="{{ task.onClick }}" style="padding:12px 0;border-bottom:1px solid var(--divider);cursor:pointer;">
+                    <div style="font-family:'Source Serif 4',serif;font-weight:600;font-size:14.5px;">{{ task.title }}</div>
+                    <span style="{{ task.pillStyle }}">{{ task.pillLabel }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ noSelectedDateTasks }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 0;">
+                <i class="ph-duotone ph-coffee" style="font-size:24px;opacity:.3;"></i>
+                <div style="font-size:13px;opacity:.5;">ไม่มีงานในวันนี้</div>
+              </div>
+            </sc-if>
+          </div>
+          <h5 style="margin:18px 0 10px;">กำลังจะถึง</h5>
+          <div style="display:flex;flex-direction:column;">
+            <sc-for list="{{ upcomingTasks }}" as="task" hint-placeholder-count="2">
+              <div onClick="{{ task.onClick }}" style="padding:12px 0;border-bottom:1px solid var(--divider);cursor:pointer;">
+                <div style="font-size:11.5px;font-weight:600;color:var(--priv-press);margin-bottom:4px;">{{ task.dueLabel }}</div>
+                <div style="font-family:'Source Serif 4',serif;font-weight:600;font-size:14.5px;">{{ task.title }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- SETTINGS -->
+        <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{ settingsSubNone }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:center;gap:14px;padding-bottom:18px;border-bottom:1px solid var(--divider);margin-bottom:6px;">
+              <div style="width:48px;height:48px;border-radius:50%;background:var(--priv-tint);color:var(--priv);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;flex:none;">สม</div>
+              <div style="flex:1;"><div style="font-family:'Source Serif 4',serif;font-weight:600;font-size:15px;">สมลักษณ์ ใจดี</div><div style="font-size:12px;opacity:.55;">somluck@example.com</div></div>
+            </div>
+            <div style="display:flex;flex-direction:column;">
+              <div onClick="{{ openSettingsFamily }}" style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--divider);min-height:44px;cursor:pointer;">
+                <i class="ph-duotone ph-users-three" style="font-size:20px;color:var(--fam);"></i>
+                <span style="flex:1;font-size:14.5px;">ครอบครัวสุขใจ · 4 คน</span>
+                <i class="ph-duotone ph-caret-right" style="font-size:15px;opacity:.4;"></i>
+              </div>
+              <div onClick="{{ openSettingsLine }}" style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--divider);min-height:44px;cursor:pointer;">
+                <i class="ph-duotone ph-chat-circle-text" style="font-size:20px;color:var(--fam);"></i>
+                <span style="flex:1;font-size:14.5px;">การเชื่อมต่อ LINE</span>
+                <i class="ph-duotone ph-caret-right" style="font-size:15px;opacity:.4;"></i>
+              </div>
+              <div onClick="{{ openSettingsNotif }}" style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--divider);min-height:44px;cursor:pointer;">
+                <i class="ph-duotone ph-bell" style="font-size:20px;color:var(--priv);"></i>
+                <span style="flex:1;font-size:14.5px;">การแจ้งเตือน</span>
+                <i class="ph-duotone ph-caret-right" style="font-size:15px;opacity:.4;"></i>
+              </div>
+              <div title="ยังไม่เปิดใช้งานในต้นแบบนี้" style="display:flex;align-items:center;gap:14px;padding:14px 0;min-height:44px;opacity:.4;cursor:not-allowed;">
+                <i class="ph-duotone ph-sign-out" style="font-size:20px;color:var(--status-overdue);"></i>
+                <span style="flex:1;font-size:14.5px;color:var(--status-overdue);font-weight:600;">ออกจากระบบ</span>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ settingsSubIsFamily }}" hint-placeholder-val="{{ false }}">
+            <p style="font-size:13px;opacity:.55;margin:0 0 16px;">สมาชิกทั้ง 4 คนเข้าถึงคลังไฟล์และงานของครอบครัวนี้ได้</p>
+            <div style="display:flex;flex-direction:column;">
+              <sc-for list="{{ membersList }}" as="m" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--divider);min-height:44px;">
+                  <div style="width:32px;height:32px;border-radius:50%;background:var(--fam-tint);color:var(--fam);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;">{{ m.initials }}</div>
+                  <div style="flex:1;font-size:13.5px;">{{ m.name }}</div>
+                  <span style="font-size:12px;opacity:.5;">{{ m.role }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ settingsSubIsLine }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:10px;padding:14px;border:1px solid var(--divider);border-radius:8px;">
+              <div style="display:flex;align-items:center;gap:10px;"><i class="ph-duotone ph-chat-circle-text" style="font-size:22px;color:var(--fam);"></i><span style="font-size:14px;font-weight:600;font-family:'Source Serif 4',serif;">เชื่อมต่อกับกลุ่ม "ครอบครัวสุขใจ" แล้ว</span></div>
+              <div style="font-size:12px;opacity:.55;">พิมพ์ #งาน หรือ #เก็บ ในแชทเพื่อบันทึกอัตโนมัติ</div>
+              <button disabled="{{ true }}" style="border:1px solid var(--divider);background:none;border-radius:8px;padding:10px;font-size:13px;opacity:.4;cursor:not-allowed;min-height:44px;">ยกเลิกการเชื่อมต่อ</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{ settingsSubIsNotif }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--divider);min-height:44px;">
+                <span style="font-size:13.5px;">แจ้งเตือนงานใกล้กำหนด</span>
+                <span onClick="{{ toggleNotifDueSoon }}" style="{{ notifDueSoonTrackStyle }}"><span style="{{ notifDueSoonKnobStyle }}"></span></span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;min-height:44px;">
+                <span style="font-size:13.5px;">สรุปกิจกรรมประจำสัปดาห์</span>
+                <span onClick="{{ toggleNotifWeekly }}" style="{{ notifWeeklyTrackStyle }}"><span style="{{ notifWeeklyKnobStyle }}"></span></span>
+              </div>
+            </div>
+          </sc-if>
+        </sc-if>
+
+      </div>
+
+      <sc-if value="{{ mobileShowBottomNav }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;justify-content:space-around;padding:10px 6px 14px;border-top:1px solid var(--divider);">
+          <sc-for list="{{ mobileNavItems }}" as="item" hint-placeholder-count="4">
+            <div onClick="{{ item.onClick }}" style="{{ item.style }}"><i class="{{ item.icon }}" style="font-size:21px;"></i><span style="{{ item.labelStyle }}">{{ item.label }}</span></div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <!-- FILE DETAIL MODAL -->
+  <sc-if value="{{ showFileModal }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeFileDetail }}" style="position:fixed;inset:0;background:rgba(16,24,32,.45);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;">
+      <sc-if value="{{ hasSelectedFile }}" hint-placeholder-val="{{ true }}">
+        <div onClick="{{ stopPropagation }}" style="background:var(--surface);border-radius:12px;max-width:380px;width:100%;padding:24px;display:flex;flex-direction:column;gap:16px;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+            <i class="{{ selectedFile.icon }}" style="font-size:38px;color:{{ selectedFile.color }};"></i>
+            <i class="ph-duotone ph-x" style="font-size:18px;cursor:pointer;opacity:.6;" onClick="{{ closeFileDetail }}"></i>
+          </div>
+          <div>
+            <div style="font-family:'Source Serif 4',serif;font-weight:600;font-size:16px;margin-bottom:6px;">{{ selectedFile.name }}</div>
+            <span style="{{ selectedFile.tagStyle }}">{{ selectedFile.tagLabel }}</span>
+          </div>
+          <div style="height:120px;border-radius:8px;background:repeating-linear-gradient(45deg,var(--surface-muted),var(--surface-muted) 10px,var(--divider) 10px,var(--divider) 20px);display:flex;align-items:center;justify-content:center;font:12px ui-monospace,Menlo,monospace;color:var(--text2);">{{ selectedFile.previewLabel }}</div>
+          <div style="font-size:12.5px;opacity:.6;">{{ selectedFile.by }} · {{ selectedFile.date }} · {{ selectedFile.size }}</div>
+          <div style="display:flex;gap:8px;">
+            <button style="flex:1;background:var(--priv);color:#fff;border:0;border-radius:8px;padding:10px;font-size:13.5px;font-weight:600;cursor:pointer;">ดาวน์โหลด</button>
+            <button onClick="{{ closeFileDetail }}" style="border:1px solid var(--divider);background:none;border-radius:8px;padding:10px 16px;font-size:13.5px;cursor:pointer;">ปิด</button>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <!-- TOAST -->
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:200;{{ toastStyle }}">
+      <i class="{{ toastIcon }}"></i>{{ toastText }}
+    </div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    device: 'desktop',
+    screen: 'home',
+    lockerTab: 'private',
+    tasksFilter: 'all',
+    selectedTaskId: null,
+    taskDetailFrom: 'tasks',
+    editingDueDate: false,
+    dueDateDraft: '',
+    dueTimeDraft: '',
+    dueDateError: '',
+    dueSaveState: 'idle',
+    reminderAddOpen: false,
+    showFileModal: false,
+    selectedFileId: null,
+    selectedDate: '2026-09-06',
+    calYear: 2026,
+    calMonth: 9,
+    weekAnchor: '2026-08-31',
+    settingsTab: 'general',
+    settingsSub: null,
+    notifDueSoon: true,
+    notifWeekly: false,
+    createForm: { title:'', description:'', workspace:'', assignee:'', dueDate:'', dueTime:'', reminders: [] },
+    createErrors: {},
+    createSaveState: 'idle',
+    createReminderPickerOpen: false,
+    toast: null,
+    reminderSeq: 1,
+    tasks: [
+      { id:'t1', title:'ต่อประกันรถยนต์', workspace:'private', assignee:'ตัวเอง', dueDate:'2026-08-25', dueTime:'', status:'overdue', reminders:[], notes:'ต่ออายุกรมธรรม์ประกันภัยรถยนต์ก่อนหมดอายุ' },
+      { id:'t2', title:'ชำระค่าไฟเดือนกันยายน', workspace:'family', assignee:'ทุกคน', dueDate:'2026-09-03', dueTime:'18:00', status:'duesoon', reminders:[{id:'r1',label:'ก่อนถึงกำหนด 1 วัน'}], notes:'ยอดค่าไฟบ้านประจำเดือนกันยายน ชำระผ่านแอปธนาคารก่อนเวลา 18:00 ไม่เช่นนั้นจะถูกตัดไฟ' },
+      { id:'t3', title:'ส่งรายงานประจำเดือน', workspace:'private', assignee:'ตัวเอง', dueDate:'2026-09-02', dueTime:'10:00', status:'progress', reminders:[], notes:'' },
+      { id:'t4', title:'นัดซ่อมเครื่องซักผ้า', workspace:'family', assignee:'สมลักษณ์', dueDate:'2026-09-05', dueTime:'', status:'progress', reminders:[], notes:'' },
+      { id:'t5', title:'พาเก็บไปพบทันตแพทย์', workspace:'family', assignee:'สมชาย', dueDate:'2026-08-27', dueTime:'', status:'done', reminders:[], notes:'' },
+      { id:'t6', title:'นัดตรวจสายตาประจำปี', workspace:'private', assignee:'ตัวเอง', dueDate:'2026-08-20', dueTime:'', status:'cancelled', reminders:[], notes:'' }
+    ]
+  };
+
+  STATUS = {
+    progress:{label:'กำลังทำ', text:'#1D4ED8', bg:'#DBEAFE', border:'#93C5FD'},
+    duesoon:{label:'ใกล้กำหนด', text:'#B45309', bg:'#FEF3C7', border:'#FCD34D'},
+    overdue:{label:'เลยกำหนด', text:'#B91C1C', bg:'#FEE2E2', border:'#FCA5A5'},
+    done:{label:'เสร็จแล้ว', text:'#166534', bg:'#DCFCE7', border:'#86EFAC'},
+    cancelled:{label:'ยกเลิก', text:'#4B5563', bg:'#F3F4F6', border:'#D1D5DB'}
+  };
+  MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  FULL_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  REMINDER_PRESETS = [
+    {label:'ก่อนถึงกำหนด 1 วัน'},
+    {label:'ก่อนถึงกำหนด 3 ชั่วโมง'},
+    {label:'เช้าวันครบกำหนด เวลา 09:00'}
+  ];
+  MEMBERS = [
+    {id:'m1', name:'สมลักษณ์ ใจดี', initials:'สม', role:'เจ้าของ'},
+    {id:'m2', name:'สมชาย ใจดี', initials:'ชา', role:'สมาชิก'},
+    {id:'m3', name:'ใหม่ ใจดี', initials:'ใหม่', role:'สมาชิก'},
+    {id:'m4', name:'เก็บ ใจดี', initials:'เก็บ', role:'สมาชิก'}
+  ];
+  FILES = {
+    private: [
+      {id:'f1', name:'ใบนัดตรวจสุขภาพประจำปี.pdf', icon:'ph-duotone ph-file-pdf', type:'PDF', size:'440.7 KB', date:'31 ส.ค.', by:'ของฉัน'},
+      {id:'f2', name:'สัญญาเช่าบ้าน.pdf', icon:'ph-duotone ph-file-pdf', type:'PDF', size:'1.2 MB', date:'28 ส.ค.', by:'ของฉัน'},
+      {id:'f3', name:'ใบเสร็จค่าน้ำ.jpg', icon:'ph-duotone ph-image', type:'รูปภาพ', size:'97.1 KB', date:'31 ส.ค.', by:'ของฉัน'}
+    ],
+    family: [
+      {id:'f4', name:'ภาพงานวันเกิดคุณยาย.jpg', icon:'ph-duotone ph-image', type:'รูปภาพ', size:'1.4 MB', date:'29 ส.ค.', by:'ใหม่'},
+      {id:'f5', name:'ใบแจ้งหนี้ค่าไฟเดือนสิงหาคม.pdf', icon:'ph-duotone ph-file-pdf', type:'PDF', size:'320 KB', date:'30 ส.ค.', by:'สมชาย'},
+      {id:'f6', name:'สำเนาทะเบียนบ้าน.pdf', icon:'ph-duotone ph-file-pdf', type:'PDF', size:'880 KB', date:'20 ส.ค.', by:'สมลักษณ์'},
+      {id:'f7', name:'รายการของใช้บ้านใหม่.docx', icon:'ph-duotone ph-file-doc', type:'DOC', size:'62 KB', date:'18 ส.ค.', by:'เก็บ'}
+    ]
+  };
+  WEEKDAYS = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+  TODAY = '2026-09-01';
+
+  pillStyle(statusId){
+    const s = this.STATUS[statusId];
+    return `font-size:12px;font-weight:600;color:${s.text};background:${s.bg};border:1px solid ${s.border};padding:3px 9px;border-radius:6px;white-space:nowrap;`;
+  }
+  fmtDate(dateStr, timeStr){
+    const d = new Date(dateStr+'T00:00:00');
+    const s = d.getDate()+' '+this.MONTHS[d.getMonth()];
+    return timeStr ? s+' '+timeStr : s;
+  }
+  computeStatusFromDate(dateStr){
+    const today = new Date('2026-09-01T00:00:00');
+    const d = new Date(dateStr+'T00:00:00');
+    const diff = Math.round((d-today)/86400000);
+    if (diff < 0) return 'overdue';
+    if (diff <= 2) return 'duesoon';
+    return 'progress';
+  }
+  taskSubtitle(t){
+    return t.workspace === 'private' ? 'งานส่วนตัว' : ('ครอบครัวสุขใจ · มอบหมายให้ ' + t.assignee);
+  }
+  showToast(type, text){
+    clearTimeout(this._toastTimer);
+    this.setState({ toast: { type, text } });
+    this._toastTimer = setTimeout(() => this.setState({ toast: null }), 2200);
+  }
+  stopPropagation = (e) => { if (e && e.stopPropagation) e.stopPropagation(); };
+
+  componentDidMount(){
+    this._outsideClick = (e) => {
+      if (this.state.reminderAddOpen && !e.target.closest('[data-reminder-picker="detail"]')) this.setState({ reminderAddOpen:false });
+      if (this.state.createReminderPickerOpen && !e.target.closest('[data-reminder-picker="create"]')) this.setState({ createReminderPickerOpen:false });
+    };
+    document.addEventListener('mousedown', this._outsideClick, true);
+  }
+  componentWillUnmount(){
+    document.removeEventListener('mousedown', this._outsideClick, true);
+  }
+
+  setDeviceDesktop = () => this.setState({ device:'desktop' });
+  setDeviceMobile = () => this.setState({ device:'mobile' });
+  goHomeQuick = () => this.setState({ screen:'home', showFileModal:false });
+  goLockerQuick = () => this.setState({ screen:'locker', showFileModal:false });
+  goTasksQuick = () => this.setState({ screen:'tasks', showFileModal:false, createSaveState:'idle', createErrors:{} });
+  goCalendarQuick = () => this.setState({ screen:'calendar', showFileModal:false });
+  goSettingsQuick = () => this.setState({ screen:'settings', showFileModal:false, settingsTab:'general', settingsSub:null });
+
+  setLockerTabPrivate = () => this.setState({ lockerTab:'private' });
+  setLockerTabFamily = () => this.setState({ lockerTab:'family' });
+  setTasksFilter = (f) => this.setState({ tasksFilter: f });
+
+  openFileDetail = (id) => {
+    const isPriv = this.FILES.private.some(f=>f.id===id);
+    this.setState({ showFileModal:true, selectedFileId:id, lockerTab: isPriv ? 'private' : 'family' });
+  };
+  closeFileDetail = () => this.setState({ showFileModal:false, selectedFileId:null });
+
+  openTaskDetail = (id, from) => this.setState({
+    screen:'taskDetail', selectedTaskId:id, taskDetailFrom: from || 'tasks',
+    editingDueDate:false, dueDateError:'', dueSaveState:'idle', reminderAddOpen:false
+  });
+  backFromTaskDetail = () => this.setState({ screen: this.state.taskDetailFrom, selectedTaskId:null });
+
+  startEditDueDate = () => {
+    const task = this.state.tasks.find(t=>t.id===this.state.selectedTaskId);
+    this.setState({ editingDueDate:true, dueDateDraft: task.dueDate, dueTimeDraft: task.dueTime||'', dueDateError:'', dueSaveState:'idle' });
+  };
+  cancelEditDueDate = () => this.setState({ editingDueDate:false, dueDateError:'' });
+  onChangeDueDateDraft = (e) => this.setState({ dueDateDraft: e.target.value });
+  onChangeDueTimeDraft = (e) => this.setState({ dueTimeDraft: e.target.value });
+  saveDueDate = () => {
+    if (!this.state.dueDateDraft) { this.setState({ dueDateError:'กรุณาเลือกวันครบกำหนด' }); return; }
+    const today = new Date(this.TODAY+'T00:00:00');
+    const picked = new Date(this.state.dueDateDraft+'T00:00:00');
+    if (picked < today) { this.setState({ dueDateError:'วันครบกำหนดต้องไม่ใช่วันที่ผ่านมาแล้ว' }); return; }
+    this.setState({ dueSaveState:'loading', dueDateError:'' });
+    const draftDate = this.state.dueDateDraft, draftTime = this.state.dueTimeDraft;
+    setTimeout(() => {
+      const tasks = this.state.tasks.map(t => t.id===this.state.selectedTaskId
+        ? {...t, dueDate:draftDate, dueTime:draftTime, status: (t.status==='done'||t.status==='cancelled') ? t.status : this.computeStatusFromDate(draftDate)}
+        : t);
+      this.setState({ tasks, dueSaveState:'success', editingDueDate:false });
+      this.showToast('success','บันทึกกำหนดวันแล้ว');
+    }, 700);
+  };
+
+  toggleReminderPicker = () => this.setState({ reminderAddOpen: !this.state.reminderAddOpen });
+  addReminderToTask = (label) => {
+    const seq = this.state.reminderSeq+1;
+    const tasks = this.state.tasks.map(t => t.id===this.state.selectedTaskId
+      ? {...t, reminders:[...t.reminders, {id:'r'+seq, label}]}
+      : t);
+    this.setState({ tasks, reminderSeq:seq, reminderAddOpen:false });
+    this.showToast('success','เพิ่มการแจ้งเตือนแล้ว');
+  };
+  removeReminderFromTask = (reminderId) => {
+    const tasks = this.state.tasks.map(t => t.id===this.state.selectedTaskId
+      ? {...t, reminders:t.reminders.filter(r=>r.id!==reminderId)}
+      : t);
+    this.setState({ tasks });
+  };
+
+  openCreateTask = () => this.setState({
+    screen:'taskCreate',
+    createForm:{ title:'', description:'', workspace:'', assignee:'', dueDate:'', dueTime:'', reminders:[] },
+    createErrors:{}, createSaveState:'idle', createReminderPickerOpen:false
+  });
+  onChangeCreateTitle = (e) => this.setState({ createForm: {...this.state.createForm, title: e.target.value}, createErrors: {...this.state.createErrors, title: null} });
+  onChangeCreateDesc = (e) => this.setState({ createForm: {...this.state.createForm, description: e.target.value} });
+  onChangeCreateDueDate = (e) => this.setState({ createForm: {...this.state.createForm, dueDate: e.target.value}, createErrors: {...this.state.createErrors, dueDate: null} });
+  onChangeCreateDueTime = (e) => this.setState({ createForm: {...this.state.createForm, dueTime: e.target.value} });
+  onChangeCreateAssignee = (e) => this.setState({ createForm: {...this.state.createForm, assignee: e.target.value} });
+  selectWorkspacePrivate = () => this.setState({ createForm: {...this.state.createForm, workspace:'private', assignee:'ตัวเอง'}, createErrors: {...this.state.createErrors, workspace: null} });
+  selectWorkspaceFamily = () => this.setState({ createForm: {...this.state.createForm, workspace:'family', assignee:'ทุกคน'}, createErrors: {...this.state.createErrors, workspace: null} });
+  toggleCreateReminderPicker = () => this.setState({ createReminderPickerOpen: !this.state.createReminderPickerOpen });
+  addCreateReminder = (label) => this.setState({ createForm:{...this.state.createForm, reminders:[...this.state.createForm.reminders, {id:'c'+(this.state.createForm.reminders.length+1), label}]}, createReminderPickerOpen:false });
+  removeCreateReminder = (id) => this.setState({ createForm:{...this.state.createForm, reminders:this.state.createForm.reminders.filter(r=>r.id!==id)} });
+
+  saveCreateTask = () => {
+    const f = this.state.createForm;
+    const errors = {};
+    if (!f.title.trim()) errors.title = 'กรุณากรอกชื่องาน';
+    if (!f.workspace) errors.workspace = 'กรุณาเลือกพื้นที่';
+    if (!f.dueDate) errors.dueDate = 'กรุณาเลือกวันครบกำหนด';
+    else {
+      const today = new Date(this.TODAY+'T00:00:00');
+      const picked = new Date(f.dueDate+'T00:00:00');
+      if (picked < today) errors.dueDate = 'วันครบกำหนดต้องไม่ใช่วันที่ผ่านมาแล้ว';
+    }
+    if (Object.keys(errors).length) { this.setState({ createErrors: errors }); return; }
+    this.setState({ createSaveState:'loading', createErrors:{} });
+    setTimeout(() => {
+      const id = 't_new_'+Math.round(Math.random()*100000);
+      const newTask = {
+        id, title: f.title.trim(), workspace: f.workspace,
+        assignee: f.workspace==='private' ? 'ตัวเอง' : (f.assignee || 'ทุกคน'),
+        dueDate: f.dueDate, dueTime: f.dueTime, status: this.computeStatusFromDate(f.dueDate),
+        reminders: f.reminders, notes: f.description
+      };
+      this.setState({ tasks:[newTask, ...this.state.tasks], createSaveState:'success' });
+      setTimeout(() => {
+        this.setState({ screen:'tasks', tasksFilter:'all', createSaveState:'idle' });
+        this.showToast('success','สร้างงานใหม่แล้ว');
+      }, 500);
+    }, 800);
+  };
+
+  selectCalendarDate = (dateStr) => {
+    const d = new Date(dateStr+'T00:00:00');
+    this.setState({ selectedDate: dateStr, calYear: d.getFullYear(), calMonth: d.getMonth()+1, weekAnchor: this.weekStart(dateStr) });
+  };
+  prevMonth = () => this.setState(s => { let m=s.calMonth-1,y=s.calYear; if(m<1){m=12;y--;} return {calMonth:m,calYear:y}; });
+  nextMonth = () => this.setState(s => { let m=s.calMonth+1,y=s.calYear; if(m>12){m=1;y++;} return {calMonth:m,calYear:y}; });
+  prevWeek = () => this.setState(s => ({ weekAnchor: this.addDays(s.weekAnchor,-7) }));
+  nextWeek = () => this.setState(s => ({ weekAnchor: this.addDays(s.weekAnchor,7) }));
+
+  openSettingsFamily = () => this.setState({ settingsSub:'family' });
+  openSettingsLine = () => this.setState({ settingsSub:'line' });
+  openSettingsNotif = () => this.setState({ settingsSub:'notif' });
+  backSettingsSub = () => this.setState({ settingsSub: null });
+  setSettingsTabGeneral = () => this.setState({ settingsTab:'general' });
+  setSettingsTabFamily = () => this.setState({ settingsTab:'family' });
+  setSettingsTabLine = () => this.setState({ settingsTab:'line' });
+  setSettingsTabNotif = () => this.setState({ settingsTab:'notif' });
+  toggleNotifDueSoon = () => this.setState({ notifDueSoon: !this.state.notifDueSoon });
+  toggleNotifWeekly = () => this.setState({ notifWeekly: !this.state.notifWeekly });
+
+  resetPrototype = () => this.setState({
+    device:'desktop', screen:'home', lockerTab:'private', tasksFilter:'all', selectedTaskId:null,
+    taskDetailFrom:'tasks', editingDueDate:false, dueDateError:'', dueSaveState:'idle', reminderAddOpen:false,
+    showFileModal:false, selectedFileId:null, selectedDate:'2026-09-06', settingsTab:'general', settingsSub:null,
+    notifDueSoon:true, notifWeekly:false, createSaveState:'idle', createErrors:{}, toast:null
+  });
+
+  fmtDateStr(d){
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+  addDays(dateStr, n){
+    const d = new Date(dateStr+'T00:00:00');
+    d.setDate(d.getDate()+n);
+    return this.fmtDateStr(d);
+  }
+  weekStart(dateStr){
+    const d = new Date(dateStr+'T00:00:00');
+    d.setDate(d.getDate()-d.getDay());
+    return this.fmtDateStr(d);
+  }
+  buildMonthGrid(year, month){
+    const first = new Date(year, month-1, 1);
+    const startWeekday = first.getDay();
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const totalCells = Math.ceil((startWeekday+daysInMonth)/7)*7;
+    const start = new Date(year, month-1, 1-startWeekday);
+    const cells = [];
+    for (let i=0;i<totalCells;i++){
+      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate()+i);
+      cells.push({ d: d.getDate(), dim: d.getMonth()+1 !== month, dateStr: this.fmtDateStr(d) });
+    }
+    return cells;
+  }
+  buildWeek(anchorDateStr){
+    const cells = [];
+    for (let i=0;i<7;i++){
+      const dateStr = this.addDays(anchorDateStr, i);
+      const d = new Date(dateStr+'T00:00:00');
+      cells.push({ d: d.getDate(), dateStr, month: d.getMonth() });
+    }
+    return cells;
+  }
+
+  renderVals() {
+    const s = this.state;
+    const isDesktop = s.device === 'desktop';
+    const isMobile = !isDesktop;
+    const isHome = s.screen === 'home';
+    const isLocker = s.screen === 'locker';
+    const isTasks = s.screen === 'tasks';
+    const isTaskDetail = s.screen === 'taskDetail';
+    const isTaskCreate = s.screen === 'taskCreate';
+    const isCalendar = s.screen === 'calendar';
+    const isSettings = s.screen === 'settings';
+
+    const navAccent = isLocker ? (s.lockerTab === 'family' ? '#F28A45' : '#7FB9DE') : '#7FB9DE';
+    const navDef = (key, label) => {
+      const active = s.screen === key;
+      const onClick = key==='home'?this.goHomeQuick:key==='locker'?this.goLockerQuick:key==='tasks'?this.goTasksQuick:this.goCalendarQuick;
+      return { label, onClick, style: active
+        ? `font-size:14px;cursor:pointer;border-bottom:2px solid ${navAccent};padding-bottom:14px;margin-bottom:-17px;color:${navAccent};font-weight:600;`
+        : `font-size:14px;opacity:.6;cursor:pointer;` };
+    };
+    const desktopNavItems = [ navDef('home','หน้าหลัก'), navDef('locker','คลังไฟล์'), navDef('tasks','งาน'), navDef('calendar','ปฏิทิน') ];
+    const mobileNavDef = (key, icon, label) => {
+      const active = s.screen === key;
+      const onClick = key==='home'?this.goHomeQuick:key==='locker'?this.goLockerQuick:key==='tasks'?this.goTasksQuick:this.goCalendarQuick;
+      return { key, icon, label, onClick,
+        style:`display:flex;flex-direction:column;align-items:center;gap:3px;min-width:64px;min-height:44px;white-space:nowrap;cursor:pointer;${active?'color:'+navAccent+';':'opacity:.55;'}`,
+        labelStyle:`font-size:10.5px;${active?'font-weight:600;':''}` };
+    };
+    const mobileNavItems = [ mobileNavDef('home','ph-duotone ph-house','หน้าหลัก'), mobileNavDef('locker','ph-duotone ph-folders','คลังไฟล์'), mobileNavDef('tasks','ph-duotone ph-check-square','งาน'), mobileNavDef('calendar','ph-duotone ph-calendar-blank','ปฏิทิน') ];
+
+    const decorateTask = (t, from) => {
+      const st = this.STATUS[t.status];
+      return {
+        ...t,
+        pillLabel: st.label,
+        pillStyle: this.pillStyle(t.status),
+        subtitle: this.taskSubtitle(t),
+        dueLabel: t.status==='done' ? ('เสร็จแล้ว · '+this.fmtDate(t.dueDate)) : (st.label+' · '+this.fmtDate(t.dueDate, t.dueTime)),
+        onClick: () => this.openTaskDetail(t.id, from)
+      };
+    };
+
+    const homeTasksRaw = s.tasks.filter(t => t.status==='progress' || t.status==='duesoon' || t.status==='overdue').slice(0,3);
+    const homeTasks = homeTasksRaw.map(t => decorateTask(t, 'home'));
+    const homeFiles = [this.FILES.private[0], this.FILES.family[0], this.FILES.family[1]].map(f => ({...f, meta:f.by+' · '+f.date, color: this.FILES.private.includes(f)?'#7FB9DE':'#F28A45', onClick: () => this.openFileDetail(f.id)}));
+
+    const decorateFile = (f, ws) => ({...f, color: ws==='private'?'#7FB9DE':'#F28A45', onClick: () => this.openFileDetail(f.id)});
+    const currentLockerFiles = (s.lockerTab==='private'?this.FILES.private:this.FILES.family).map(f => decorateFile(f, s.lockerTab));
+    const lockerTitle = s.lockerTab==='private' ? 'ของฉัน' : 'ครอบครัวสุขใจ';
+    const lockerSubtitle = s.lockerTab==='private' ? (this.FILES.private.length+' ไฟล์ · เห็นได้เฉพาะคุณ') : ('สมาชิกทั้ง 4 คนเข้าถึงไฟล์ในคลังนี้ได้ · '+this.FILES.family.length+' ไฟล์');
+    const tabStyle = (active,color) => active ? `font-family:'Source Serif 4',serif;font-weight:600;font-size:15px;color:${color};border-bottom:2px solid ${color};padding-bottom:7px;cursor:pointer;` : `font-family:'Source Serif 4',serif;font-weight:600;font-size:15px;opacity:.5;padding-bottom:7px;cursor:pointer;`;
+    const mobileTabStyle = (active,color) => `flex:1;text-align:center;padding:11px 0;font-size:14px;font-family:'Source Serif 4',serif;font-weight:600;cursor:pointer;${active?('color:'+color+';border-bottom:2px solid '+color+';margin-bottom:-1px;'):'opacity:.5;'}`;
+
+    const allFiles = () => {};
+    const selectedFileRaw = [...this.FILES.private, ...this.FILES.family].find(f=>f.id===s.selectedFileId);
+    const isPrivateFile = selectedFileRaw && this.FILES.private.includes(selectedFileRaw);
+    const selectedFile = selectedFileRaw ? {
+      ...selectedFileRaw,
+      color: isPrivateFile ? '#7FB9DE' : '#F28A45',
+      tagLabel: isPrivateFile ? 'ของฉัน' : 'ครอบครัวสุขใจ',
+      tagStyle: `font-size:12.5px;font-weight:600;padding:5px 12px;border-radius:999px;background:${isPrivateFile?'#E8F2F9':'#FDF0E8'};color:${isPrivateFile?'#5883B4':'#B95E2B'};`,
+      previewLabel: selectedFileRaw.icon.indexOf('image')>-1 ? 'ตัวอย่างรูปภาพ' : 'ไม่มีตัวอย่างไฟล์'
+    } : null;
+
+    const filterDef = (key,label) => {
+      const active = s.tasksFilter===key;
+      return { key, label, onClick: () => this.setTasksFilter(key),
+        style: active ? `font-family:'Source Serif 4',serif;font-weight:600;font-size:15px;color:#1a1a1a;border-bottom:2px solid #1a1a1a;padding-bottom:7px;cursor:pointer;` : `font-family:'Source Serif 4',serif;font-weight:600;font-size:15px;opacity:.5;padding-bottom:7px;cursor:pointer;`,
+        mobileStyle: active ? `color:#1a1a1a;font-weight:600;white-space:nowrap;cursor:pointer;` : `opacity:.55;white-space:nowrap;cursor:pointer;` };
+    };
+    const taskFilterTabs = [ filterDef('all','ทั้งหมด'), filterDef('private','ของฉัน'), filterDef('family','ครอบครัว') ];
+    const filteredTasksRaw = s.tasks.filter(t => s.tasksFilter==='all' || t.workspace===s.tasksFilter);
+    const filteredTasks = filteredTasksRaw.map(t => decorateTask(t, 'tasks'));
+    const overdueCount = s.tasks.filter(t=>t.status==='overdue').length;
+    const duesoonCount = s.tasks.filter(t=>t.status==='duesoon').length;
+    const taskListSummary = filteredTasksRaw.length+' รายการ · '+overdueCount+' เลยกำหนด · '+duesoonCount+' ใกล้กำหนด';
+
+    const selectedTaskRaw = s.tasks.find(t=>t.id===s.selectedTaskId);
+    const selectedTask = selectedTaskRaw ? {
+      ...selectedTaskRaw,
+      pillLabel: this.STATUS[selectedTaskRaw.status].label,
+      pillStyle: this.pillStyle(selectedTaskRaw.status),
+      workspaceLabel: selectedTaskRaw.workspace==='private' ? 'ของฉัน' : 'ครอบครัวสุขใจ',
+      workspacePillStyle: selectedTaskRaw.workspace==='private' ? `font-size:12.5px;font-weight:600;padding:5px 12px;border-radius:999px;background:#E8F2F9;color:#5883B4;` : `font-size:12.5px;font-weight:600;padding:5px 12px;border-radius:999px;background:#FDF0E8;color:#B95E2B;`,
+      dueLabel: this.fmtDate(selectedTaskRaw.dueDate, selectedTaskRaw.dueTime),
+      notesDisplay: selectedTaskRaw.notes || 'ไม่มีรายละเอียดเพิ่มเติม',
+      canAddReminder: selectedTaskRaw.reminders.length < 3,
+      reminders: selectedTaskRaw.reminders.map(r => ({...r, onRemove: () => this.removeReminderFromTask(r.id)}))
+    } : null;
+    const detailReminderOptions = selectedTaskRaw ? this.REMINDER_PRESETS.filter(p => !selectedTaskRaw.reminders.some(r=>r.label===p.label)).map(p => ({label:p.label, onClick: () => this.addReminderToTask(p.label)})) : [];
+
+    const createIsFamily = s.createForm.workspace === 'family';
+    const createReminderOptions = this.REMINDER_PRESETS.filter(p => !s.createForm.reminders.some(r=>r.label===p.label)).map(p => ({label:p.label, onClick: () => this.addCreateReminder(p.label)}));
+    const createFormReminders = s.createForm.reminders.map(r => ({...r, onRemove: () => this.removeCreateReminder(r.id)}));
+    const wsBtnStyle = (active,color,tint) => active ? `font-size:12.5px;font-weight:600;padding:6px 14px;border-radius:999px;background:${tint};color:${color};cursor:pointer;` : `font-size:12.5px;font-weight:600;padding:6px 14px;border-radius:999px;border:1px solid #EFEDE6;opacity:.55;cursor:pointer;`;
+    const assigneeOptions = [{value:'ทุกคน',label:'ทุกคน'},{value:'สมลักษณ์',label:'สมลักษณ์'},{value:'สมชาย',label:'สมชาย'},{value:'ใหม่',label:'ใหม่'},{value:'เก็บ',label:'เก็บ'}];
+
+    const btnBase = 'border:0;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;';
+    const dueSaveLoading = s.dueSaveState==='loading';
+    const dueSaveBtnStyle = dueSaveLoading ? btnBase+'background:#EFEDE6;color:#6B6A63;cursor:not-allowed;' : btnBase+'background:#7FB9DE;color:#fff;';
+    const dueSaveBtnLabel = dueSaveLoading ? 'กำลังบันทึก…' : 'บันทึก';
+    const createSaveLoading = s.createSaveState==='loading';
+    const createSaveSuccess = s.createSaveState==='success';
+    const createSaveBtnStyle = (createSaveLoading||createSaveSuccess) ? btnBase+'background:#EFEDE6;color:#6B6A63;cursor:not-allowed;' : btnBase+'background:linear-gradient(135deg,#F6BE5C,#F28A45);color:#fff;';
+    const createSaveBtnLabel = createSaveLoading ? 'กำลังบันทึก…' : createSaveSuccess ? 'บันทึกแล้ว ✓' : 'บันทึกงาน';
+
+    const TODAY_MARK = '2026-09-06';
+    const tasksByDate = {};
+    s.tasks.forEach(t => { (tasksByDate[t.dueDate] = tasksByDate[t.dueDate]||[]).push(t); });
+    const monthGrid = this.buildMonthGrid(s.calYear, s.calMonth);
+    const calendarCells = monthGrid.map(c => {
+      const isSelected = c.dateStr === s.selectedDate;
+      const isToday = c.dateStr === TODAY_MARK;
+      const dayTasks = (tasksByDate[c.dateStr]||[]);
+      let cellStyle = `min-height:74px;padding:6px;border-right:1px solid #EFEDE6;border-bottom:1px solid #EFEDE6;cursor:pointer;box-sizing:border-box;`;
+      if (c.dim) cellStyle += 'opacity:.35;';
+      if (isSelected) cellStyle += 'background:#E8F2F9;';
+      if (isToday) cellStyle += 'box-shadow:inset 0 0 0 2px #7FB9DE;';
+      return {
+        onClick: () => this.selectCalendarDate(c.dateStr),
+        cellStyle,
+        day: c.d,
+        dayStyle: `font-size:12px;${isSelected?'font-weight:700;color:#5883B4;':(isToday?'font-weight:700;color:#7FB9DE;':'')}`,
+        tasks: dayTasks.slice(0,2).map(t => ({
+          shortLabel: t.title.length>10 ? t.title.slice(0,9)+'…' : t.title,
+          dotStyle: `font-size:10.5px;font-weight:600;color:${this.STATUS[t.status].text};background:${this.STATUS[t.status].bg};border-radius:4px;padding:2px 5px;margin-top:4px;`
+        }))
+      };
+    });
+    const weekdayLabels = this.WEEKDAYS;
+    const calendarTitle = this.FULL_MONTHS[s.calMonth-1]+' '+(s.calYear+543);
+
+    const selectedDateObj = new Date(s.selectedDate+'T00:00:00');
+    const selectedDateLabel = 'วันที่ '+selectedDateObj.getDate()+' '+this.MONTHS[selectedDateObj.getMonth()]+' 2569';
+    const selectedDateTasksRaw = tasksByDate[s.selectedDate] || [];
+    const selectedDateTasks = selectedDateTasksRaw.map(t => decorateTask(t, 'calendar'));
+    const upcomingTasksRaw = s.tasks.filter(t => t.dueDate > s.selectedDate && (t.status!=='done'&&t.status!=='cancelled')).sort((a,b)=>a.dueDate.localeCompare(b.dueDate)).slice(0,2);
+    const upcomingTasks = upcomingTasksRaw.map(t => ({...decorateTask(t,'calendar'), dueLabel: this.fmtDate(t.dueDate,t.dueTime)}));
+
+    const weekCells = this.buildWeek(s.weekAnchor);
+    const mobileWeekCells = weekCells.map((c,i) => {
+      const isSelected = c.dateStr === s.selectedDate;
+      const isToday = c.dateStr === TODAY_MARK;
+      let mobileStyle = `display:flex;flex-direction:column;align-items:center;gap:4px;min-width:38px;padding:6px 0;border-radius:8px;cursor:pointer;box-sizing:border-box;`;
+      if (isSelected) mobileStyle += 'background:#7FB9DE;color:#fff;';
+      else if (isToday) mobileStyle += 'box-shadow:inset 0 0 0 2px #7FB9DE;font-weight:700;';
+      return { onClick: () => this.selectCalendarDate(c.dateStr), wd: this.WEEKDAYS[i], day: c.d, mobileStyle };
+    });
+    const weekAnchorObj = new Date(s.weekAnchor+'T00:00:00');
+    const mobileWeekLabel = this.FULL_MONTHS[weekAnchorObj.getMonth()]+' '+(weekAnchorObj.getFullYear()+543);
+
+    const settingsTabDef = (key,label,icon) => {
+      const active = s.settingsTab === key;
+      const onClick = key==='general'?this.setSettingsTabGeneral:key==='family'?this.setSettingsTabFamily:key==='line'?this.setSettingsTabLine:this.setSettingsTabNotif;
+      return { label, icon, onClick, style: `display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13.5px;cursor:pointer;${active?'background:#E8F2F9;color:#7FB9DE;font-weight:600;':'opacity:.6;'}` };
+    };
+    const settingsTabsList = [ settingsTabDef('general','ทั่วไป','ph-duotone ph-user'), settingsTabDef('family','ครอบครัว','ph-duotone ph-users-three'), settingsTabDef('line','การเชื่อมต่อ LINE','ph-duotone ph-chat-circle-text'), settingsTabDef('notif','การแจ้งเตือน','ph-duotone ph-bell') ];
+
+    const toggleTrackStyle = (on) => `width:38px;height:22px;border-radius:999px;position:relative;display:inline-block;cursor:pointer;background:${on?'#7FB9DE':'#EFEDE6'};`;
+    const toggleKnobStyle = (on) => `width:16px;height:16px;border-radius:50%;background:#fff;position:absolute;top:3px;${on?'right:3px;':'left:3px;'}`;
+
+    const toastData = s.toast;
+    const toastStyle = toastData ? (toastData.type==='success'
+      ? 'background:#DCFCE7;color:#166534;border:1px solid #86EFAC;padding:10px 18px;border-radius:999px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;box-shadow:0 4px 14px rgba(0,0,0,.12);'
+      : 'background:#FEE2E2;color:#B91C1C;border:1px solid #FCA5A5;padding:10px 18px;border-radius:999px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;box-shadow:0 4px 14px rgba(0,0,0,.12);') : '';
+
+    const mobileScreenTitle = { home:'บ้านเรา', locker:'คลังไฟล์', tasks:'งาน', calendar:'ปฏิทิน', settings:'ตั้งค่า', taskDetail:'รายละเอียดงาน', taskCreate:'สร้างงานใหม่' }[s.screen] || '';
+    const mobileShowBack = isTaskDetail || isTaskCreate || (isSettings && s.settingsSub);
+    const mobileBackAction = isTaskDetail ? this.backFromTaskDetail : isTaskCreate ? this.goTasksQuick : this.backSettingsSub;
+    const mobileTitleFinal = (isSettings && s.settingsSub) ? {family:'ครอบครัวสุขใจ',line:'การเชื่อมต่อ LINE',notif:'การแจ้งเตือน'}[s.settingsSub] : mobileScreenTitle;
+
+    return {
+      isDesktop, isMobile,
+      desktopBtnBg: isDesktop ? '#fff' : 'transparent', desktopBtnColor: isDesktop ? '#1a1a1a' : '#fff',
+      mobileBtnBg: isMobile ? '#fff' : 'transparent', mobileBtnColor: isMobile ? '#1a1a1a' : '#fff',
+      setDeviceDesktop: this.setDeviceDesktop, setDeviceMobile: this.setDeviceMobile,
+      goHomeQuick: this.goHomeQuick, goLockerQuick: this.goLockerQuick, goTasksQuick: this.goTasksQuick, goCalendarQuick: this.goCalendarQuick, goSettingsQuick: this.goSettingsQuick,
+      resetPrototype: this.resetPrototype,
+      isHome, isLocker, isTasks, isTaskDetail, isTaskCreate, isCalendar, isSettings,
+      desktopNavItems, mobileNavItems,
+      homeSummary: 'วันนี้มีงาน '+homeTasksRaw.length+' รายการที่ต้องจัดการ',
+      homeTasks, homeFiles,
+      openCreateTask: this.openCreateTask,
+      lockerTabPrivateStyle: tabStyle(s.lockerTab==='private','#7FB9DE'), lockerTabFamilyStyle: tabStyle(s.lockerTab==='family','#F28A45'),
+      lockerTabPrivateMobileStyle: mobileTabStyle(s.lockerTab==='private','#7FB9DE'), lockerTabFamilyMobileStyle: mobileTabStyle(s.lockerTab==='family','#F28A45'),
+      setLockerTabPrivate: this.setLockerTabPrivate, setLockerTabFamily: this.setLockerTabFamily,
+      currentLockerFiles, lockerTitle, lockerSubtitle,
+      taskFilterTabs, hasFilteredTasks: filteredTasks.length>0, noFilteredTasks: filteredTasks.length===0, filteredTasks, taskListSummary,
+      hasSelectedTask: !!selectedTask, selectedTask,
+      backFromTaskDetail: this.backFromTaskDetail,
+      notEditingDueDate: !s.editingDueDate, editingDueDate: s.editingDueDate,
+      startEditDueDate: this.startEditDueDate, cancelEditDueDate: this.cancelEditDueDate,
+      dueDateDraft: s.dueDateDraft, dueTimeDraft: s.dueTimeDraft,
+      onChangeDueDateDraft: this.onChangeDueDateDraft, onChangeDueTimeDraft: this.onChangeDueTimeDraft,
+      hasDueDateError: !!s.dueDateError, dueDateError: s.dueDateError,
+      saveDueDate: this.saveDueDate, dueSaveLoading, dueSaveBtnStyle, dueSaveBtnLabel,
+      reminderAddOpen: s.reminderAddOpen, toggleReminderPicker: this.toggleReminderPicker, detailReminderOptions,
+      createForm: {...s.createForm, reminders: createFormReminders},
+      onChangeCreateTitle: this.onChangeCreateTitle, onChangeCreateDesc: this.onChangeCreateDesc,
+      onChangeCreateDueDate: this.onChangeCreateDueDate, onChangeCreateDueTime: this.onChangeCreateDueTime, onChangeCreateAssignee: this.onChangeCreateAssignee,
+      selectWorkspacePrivate: this.selectWorkspacePrivate, selectWorkspaceFamily: this.selectWorkspaceFamily,
+      createWorkspacePrivateStyle: wsBtnStyle(s.createForm.workspace==='private','#5883B4','#E8F2F9'),
+      createWorkspaceFamilyStyle: wsBtnStyle(s.createForm.workspace==='family','#B95E2B','#FDF0E8'),
+      createIsFamily, assigneeOptions,
+      canAddCreateReminder: s.createForm.reminders.length<3, createReminderPickerOpen: s.createReminderPickerOpen, toggleCreateReminderPicker: this.toggleCreateReminderPicker, createReminderOptions,
+      hasCreateTitleError: !!s.createErrors.title, hasCreateWorkspaceError: !!s.createErrors.workspace, hasCreateDueDateError: !!s.createErrors.dueDate, createErrors: s.createErrors,
+      saveCreateTask: this.saveCreateTask, createSaveBtnStyle, createSaveBtnLabel,
+      weekdayLabels, calendarCells, calendarTitle, prevMonth: this.prevMonth, nextMonth: this.nextMonth,
+      selectedDateLabel, hasSelectedDateTasks: selectedDateTasks.length>0, noSelectedDateTasks: selectedDateTasks.length===0, selectedDateTasks,
+      mobileWeekCells, mobileWeekLabel, prevWeek: this.prevWeek, nextWeek: this.nextWeek, upcomingTasks,
+      settingsTabsList, settingsIsGeneral: s.settingsTab==='general', settingsIsFamily: s.settingsTab==='family', settingsIsLine: s.settingsTab==='line', settingsIsNotif: s.settingsTab==='notif',
+      membersList: this.MEMBERS,
+      notifDueSoonTrackStyle: toggleTrackStyle(s.notifDueSoon), notifDueSoonKnobStyle: toggleKnobStyle(s.notifDueSoon), toggleNotifDueSoon: this.toggleNotifDueSoon,
+      notifWeeklyTrackStyle: toggleTrackStyle(s.notifWeekly), notifWeeklyKnobStyle: toggleKnobStyle(s.notifWeekly), toggleNotifWeekly: this.toggleNotifWeekly,
+      settingsSubNone: !s.settingsSub, settingsSubIsFamily: s.settingsSub==='family', settingsSubIsLine: s.settingsSub==='line', settingsSubIsNotif: s.settingsSub==='notif',
+      openSettingsFamily: this.openSettingsFamily, openSettingsLine: this.openSettingsLine, openSettingsNotif: this.openSettingsNotif,
+      mobileTitle: mobileTitleFinal, mobileShowBack, mobileShowPlainHeader: !mobileShowBack, mobileBackAction,
+      mobileShowBottomNav: !isTaskDetail && !isTaskCreate && !(isSettings && s.settingsSub),
+      showFileModal: s.showFileModal, hasSelectedFile: !!selectedFile, selectedFile,
+      openFileDetail: this.openFileDetail, closeFileDetail: this.closeFileDetail, stopPropagation: this.stopPropagation,
+      hasToast: !!toastData, toastText: toastData ? toastData.text : '', toastIcon: toastData && toastData.type==='success' ? 'ph-duotone ph-check-circle' : 'ph-duotone ph-warning-circle', toastStyle
+    };
+  }
+}
+
+</script>
+</body>
+</html>
