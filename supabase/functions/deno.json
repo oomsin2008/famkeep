@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "lib": ["deno.window", "deno.ns", "dom"],
+    "strict": true
+  },
+  "imports": {
+    "@std/assert": "jsr:@std/assert@1",
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2"
+  },
+  "tasks": {
+    "test": "deno test _shared/",
+    "check": "deno check line-webhook/index.ts line-worker/index.ts file-download/index.ts file-delete/index.ts _shared/"
+  }
+}
