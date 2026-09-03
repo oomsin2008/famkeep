@@ -14,7 +14,7 @@ function BackHeaderChrome({
   backHref: string;
 }) {
   return (
-    <header className="sticky top-0 z-40 flex items-center gap-1 border-b border-border bg-surface px-2 py-2 md:hidden">
+    <header className="sticky top-0 z-40 flex items-center gap-1 border-b border-border/70 bg-surface-glass px-2 py-2 backdrop-blur-xl md:hidden">
       <Link
         href={backHref}
         aria-label="ย้อนกลับ"

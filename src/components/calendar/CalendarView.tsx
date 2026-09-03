@@ -39,7 +39,7 @@ export function CalendarView({ tasks }: { tasks: TaskView[] }) {
   const { now } = useTasks();
 
   if (!now) {
-    return <div className="h-64 animate-pulse rounded-standard bg-surface-muted" />;
+    return <div className="fk-card h-64 animate-pulse" />;
   }
 
   return <CalendarBody tasks={tasks} now={now} />;
@@ -77,40 +77,44 @@ function CalendarBody({ tasks, now }: { tasks: TaskView[]; now: Date }) {
 
   return (
     <div>
-      <h1 className="text-[28px] font-semibold md:text-[32px]">ปฏิทิน</h1>
+      <h1 className="text-[26px] font-semibold md:text-[32px]">ปฏิทิน</h1>
 
-      <div data-calendar="month" className="mt-6 hidden md:block">
-        <MonthGrid
-          anchor={monthAnchor}
-          days={monthDays}
-          tasksByDate={tasksByDate}
-          today={today}
-          selectedDate={selectedDate}
-          now={now}
-          onPrev={() => setMonthAnchor((a) => shiftMonth(a, -1))}
-          onNext={() => setMonthAnchor((a) => shiftMonth(a, 1))}
-          onSelectDate={selectDate}
-        />
-      </div>
+      <div className="mt-6 md:grid md:grid-cols-[1.6fr_1fr] md:items-start md:gap-7">
+        <div data-calendar="month" className="fk-panel hidden p-6 md:block">
+          <MonthGrid
+            anchor={monthAnchor}
+            days={monthDays}
+            tasksByDate={tasksByDate}
+            today={today}
+            selectedDate={selectedDate}
+            now={now}
+            onPrev={() => setMonthAnchor((a) => shiftMonth(a, -1))}
+            onNext={() => setMonthAnchor((a) => shiftMonth(a, 1))}
+            onSelectDate={selectDate}
+          />
+        </div>
 
-      <div data-calendar="week" className="mt-5 md:hidden">
-        <WeekStrip
-          weekStart={weekStart}
-          days={weekDays}
-          tasksByDate={tasksByDate}
-          today={today}
-          selectedDate={selectedDate}
-          now={now}
-          onPrev={() => setWeekStart((w) => shiftWeek(w, -1))}
-          onNext={() => setWeekStart((w) => shiftWeek(w, 1))}
-          onSelectDate={selectDate}
-        />
-      </div>
+        <div data-calendar="week" className="fk-card p-4 md:hidden">
+          <WeekStrip
+            weekStart={weekStart}
+            days={weekDays}
+            tasksByDate={tasksByDate}
+            today={today}
+            selectedDate={selectedDate}
+            now={now}
+            onPrev={() => setWeekStart((w) => shiftWeek(w, -1))}
+            onNext={() => setWeekStart((w) => shiftWeek(w, 1))}
+            onSelectDate={selectDate}
+          />
+        </div>
 
-      <DayPanel selectedDate={selectedDate} tasks={selectedTasks} now={now} />
+        <div className="md:fk-glass md:sticky md:top-24 md:rounded-panel md:p-5">
+          <DayPanel selectedDate={selectedDate} tasks={selectedTasks} now={now} />
 
-      <div className="md:hidden">
-        <UpcomingList tasks={upcoming} now={now} />
+          <div className="md:hidden">
+            <UpcomingList tasks={upcoming} now={now} />
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -4,19 +4,17 @@ interface BrandMarkProps {
 }
 
 /**
- * FamKeep logo lockup: brand-yellow tile + wordmark.
- * Note: the brand gradient is reserved for the Create Task CTA only, so the
- * tile uses the flat brand yellow (readme §2).
+ * FamKeep logo lockup: a small claymorphic warm tile + wordmark.
  */
 export function BrandMark({ size = 17 }: BrandMarkProps) {
   return (
     <span className="inline-flex items-center gap-2 text-text">
       <span
         aria-hidden
-        className="rounded-[6px] bg-brand-yellow"
-        style={{ width: 18, height: 18 }}
+        className="bg-warm-gradient rounded-[11px] shadow-[0_8px_18px_-4px_rgba(120,86,54,0.4),inset_0_2px_3px_rgba(255,255,255,0.9),inset_0_-4px_8px_rgba(150,100,50,0.25)]"
+        style={{ width: 24, height: 24 }}
       />
-      <span className="font-semibold" style={{ fontSize: size }}>
+      <span className="font-bold tracking-tight" style={{ fontSize: size + 1 }}>
         FamKeep
       </span>
     </span>

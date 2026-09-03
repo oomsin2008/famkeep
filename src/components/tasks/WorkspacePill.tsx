@@ -11,11 +11,11 @@ export function WorkspacePill({
 }) {
   const tone =
     workspace === "private"
-      ? "bg-private-tint text-private-press"
-      : "bg-family-tint text-family-press";
+      ? "bg-private-tint text-private-press ring-private/20"
+      : "bg-family-tint text-family-press ring-family/20";
   return (
     <span
-      className={`inline-flex items-center rounded-pill px-3 py-1.5 text-xs font-semibold ${tone}`}
+      className={`inline-flex items-center rounded-pill px-3 py-1 text-[13px] font-semibold ring-1 ${tone}`}
     >
       {workspaceLabel(workspace, familyName)}
     </span>

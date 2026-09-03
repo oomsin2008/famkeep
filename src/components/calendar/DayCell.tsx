@@ -43,9 +43,8 @@ export function DayCell({
   const stopChipBubble = (event: MouseEvent) => event.stopPropagation();
 
   const className = [
-    "flex min-h-[96px] cursor-pointer flex-col gap-1 border-b border-r border-border p-1.5 text-left transition-colors",
-    isSelected ? "bg-private-tint" : "hover:bg-surface-muted",
-    isToday ? "shadow-[inset_0_0_0_2px_var(--color-private)]" : "",
+    "flex min-h-[96px] cursor-pointer flex-col gap-1 border-b border-r border-border/60 p-1.5 text-left transition-colors",
+    isSelected ? "bg-primary-soft/60" : "hover:bg-surface-muted/60",
   ].join(" ");
 
   return (
@@ -60,13 +59,16 @@ export function DayCell({
       className={className}
     >
       <span
-        className={`text-xs font-semibold ${
-          isToday
-            ? "text-private-press"
-            : day.inMonth
-              ? "text-text-2"
-              : "text-text-2/40"
-        }`}
+        className={[
+          "flex size-6 items-center justify-center rounded-full text-xs font-bold",
+          isSelected
+            ? "fk-clay fk-clay-blue text-primary-strong"
+            : isToday
+              ? "text-primary-strong ring-1 ring-inset ring-primary/50"
+              : day.inMonth
+                ? "text-text-2"
+                : "text-text-soft/60",
+        ].join(" ")}
       >
         {day.day}
       </span>
@@ -80,7 +82,7 @@ export function DayCell({
               href={`/tasks/${task.id}?from=calendar`}
               onClick={stopChipBubble}
               title={task.title}
-              className={`truncate rounded-badge px-1.5 py-0.5 text-xs font-medium ${STATUS_BADGE_CLASSES[status]}`}
+              className={`truncate rounded-[7px] border px-1.5 py-0.5 text-xs font-medium ${STATUS_BADGE_CLASSES[status]}`}
             >
               {task.title}
             </Link>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FileX } from "@phosphor-icons/react/dist/ssr";
 import { SignInNotice } from "@/components/auth/SignInNotice";
 import { DeepLinkFileOpener } from "@/components/files/DeepLinkFileOpener";
 import { LockerView } from "@/components/files/LockerView";
@@ -24,14 +25,15 @@ export default async function LockerFilePage({
 
   if (!file) {
     return (
-      <div className="flex flex-col gap-4">
-        <h1 className="text-2xl font-semibold">คลังไฟล์</h1>
-        <p className="rounded-standard border border-border bg-surface-muted p-4 text-sm text-text-2">
-          ไม่พบไฟล์ หรือคุณไม่มีสิทธิ์เข้าถึง
-        </p>
+      <div className="mx-auto flex max-w-md flex-col items-center gap-4 py-14 text-center">
+        <span className="fk-clay flex size-16 items-center justify-center rounded-card text-brand-sky">
+          <FileX size={28} weight="duotone" />
+        </span>
+        <h1 className="text-[22px] font-semibold">ไม่พบไฟล์</h1>
+        <p className="text-sm text-text-2">ไม่พบไฟล์ หรือคุณไม่มีสิทธิ์เข้าถึง</p>
         <Link
           href="/locker"
-          className="w-fit rounded-standard border border-border px-4 py-2 text-sm"
+          className="fk-btn-primary fk-soft-hover inline-flex min-h-11 w-fit items-center rounded-standard px-5 text-sm font-semibold"
         >
           ไปที่คลังไฟล์
         </Link>

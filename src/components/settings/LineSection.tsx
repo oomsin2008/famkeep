@@ -6,6 +6,7 @@ import { ChatCircleDots, SignIn } from "@phosphor-icons/react";
 import type { SafeAuthStatus } from "@/lib/auth/safe-auth-status";
 import type { LineConnectionStatus } from "@/lib/line/line-connection";
 import { createClient } from "@/lib/supabase/client";
+import { ClayTile } from "@/components/ui/ClayTile";
 import { LineGroupManager } from "./LineGroupManager";
 
 interface LineSectionProps {
@@ -85,11 +86,13 @@ export function LineSection({ authStatus, lineConnection }: LineSectionProps) {
     <section className="flex flex-col gap-5">
       <h1 className="hidden text-2xl font-semibold md:block">การเชื่อมต่อ LINE</h1>
 
-      <div className="flex flex-col gap-3 rounded-standard border border-border bg-surface-muted p-4">
-        <div className="flex items-center gap-3">
-          <ChatCircleDots size={24} className="shrink-0 text-text-2" />
+      <div className="fk-card flex flex-col gap-4 p-5">
+        <div className="flex items-center gap-3.5">
+          <ClayTile tone="green" size={48} radius={16}>
+            <ChatCircleDots size={24} weight="fill" className="text-line" />
+          </ClayTile>
           <div className="min-w-0">
-            <div className="text-sm font-semibold">การเชื่อมต่อ FamKeep กับ LINE</div>
+            <div className="text-[15px] font-semibold">การเชื่อมต่อ FamKeep กับ LINE</div>
             <div className="mt-0.5 text-[12.5px] text-text-2">
               เข้าสู่ระบบ:{" "}
               {authStatus.authenticated ? "เชื่อมแล้ว" : "ยังไม่ได้เข้าสู่ระบบ"}
@@ -106,14 +109,14 @@ export function LineSection({ authStatus, lineConnection }: LineSectionProps) {
         ))}
       </div>
 
-      <div className="flex flex-col gap-3 border-y border-border py-4">
+      <div className="fk-card flex flex-col gap-3 p-5">
         <button
           type="button"
           onClick={handleLineLogin}
           disabled={busy || !authStatus.supabaseConfigured}
-          className="inline-flex min-h-11 w-fit items-center gap-2 rounded-standard bg-text px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-border disabled:text-text-2"
+          className="fk-soft-hover inline-flex min-h-11 w-fit items-center gap-2 rounded-standard bg-line px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(76,199,100,0.28)] disabled:cursor-not-allowed disabled:bg-border disabled:text-text-2 disabled:shadow-none"
         >
-          <SignIn size={17} />
+          <SignIn size={17} weight="bold" />
           {busy ? "กำลังเปิด LINE..." : "เข้าสู่ระบบด้วย LINE"}
         </button>
 
@@ -124,20 +127,33 @@ export function LineSection({ authStatus, lineConnection }: LineSectionProps) {
           </p>
         ) : null}
 
-        {error ? <p className="text-[12.5px] text-status-overdue-text">{error}</p> : null}
+        {error ? <p className="text-[12.5px] text-danger-strong">{error}</p> : null}
         {authStatus.error ? (
-          <p className="text-[12.5px] text-status-overdue-text">{authStatus.error}</p>
+          <p className="text-[12.5px] text-danger-strong">{authStatus.error}</p>
         ) : null}
         {authStatus.profileProvisioningIssue ? (
-          <p className="text-[12.5px] text-status-overdue-text">
+          <p className="text-[12.5px] text-danger-strong">
             Profile provisioning: {authStatus.profileProvisioningIssue}
           </p>
         ) : null}
       </div>
 
-      <div className="flex flex-col gap-2 rounded-standard bg-surface-muted p-4">
-        <h2 className="text-sm font-semibold">Auth status</h2>
-        <dl className="grid gap-2 text-[12.5px] md:grid-cols-[180px_1fr]">
+      <div className="fk-clay fk-clay-green relative overflow-hidden rounded-card p-5 text-[13px] text-text-2">
+        <span className="fk-blob -right-10 -top-10 size-32 bg-white opacity-40" />
+        <p className="relative font-bold text-status-done-text">คำสั่งใน LINE</p>
+        <p className="relative mt-1">
+          <span className="font-semibold text-text">#งาน</span> — สร้างงานใหม่จากข้อความ
+        </p>
+        <p className="relative">
+          <span className="font-semibold text-text">#เก็บ</span> — บันทึกไฟล์เข้าคลัง
+        </p>
+      </div>
+
+      <details className="fk-card overflow-hidden p-0">
+        <summary className="cursor-pointer list-none px-5 py-3.5 text-sm font-semibold text-text-2">
+          รายละเอียดการเชื่อมต่อ (สำหรับผู้ดูแล)
+        </summary>
+        <dl className="grid gap-2 border-t border-border/70 px-5 py-4 text-[12.5px] md:grid-cols-[180px_1fr]">
           {AUTH_ROWS.map((row) => (
             <div key={row.label} className="contents">
               <dt className="text-text-2">{row.label}</dt>
@@ -147,23 +163,13 @@ export function LineSection({ authStatus, lineConnection }: LineSectionProps) {
             </div>
           ))}
         </dl>
-      </div>
-
-      <div className="flex flex-col gap-1.5 text-[13px] text-text-2">
-        <p>เมื่อเชื่อมต่อแล้ว ใช้แฮชแท็กในกลุ่ม LINE เพื่อส่งข้อมูลเข้า FamKeep ได้ทันที</p>
-        <p>
-          <span className="font-semibold text-text">#งาน</span> — สร้างงานใหม่จากข้อความ
-        </p>
-        <p>
-          <span className="font-semibold text-text">#เก็บ</span> — บันทึกไฟล์เข้าคลัง
-        </p>
-      </div>
+      </details>
 
       <button
         type="button"
         disabled
         title="พร้อมใช้งานเมื่อเชื่อมต่อ LINE Messaging API"
-        className="min-h-11 w-fit rounded-standard bg-border px-4 text-sm font-semibold text-text-2 disabled:cursor-not-allowed"
+        className="min-h-11 w-fit rounded-standard border border-border bg-surface-muted px-4 text-sm font-semibold text-text-2 disabled:cursor-not-allowed"
       >
         ยกเลิกการเชื่อมต่อ
       </button>

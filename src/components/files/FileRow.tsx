@@ -3,13 +3,15 @@
 import { useFiles } from "@/components/providers/FilesProvider";
 import { formatThaiDate } from "@/lib/datetime";
 import type { FileView } from "@/lib/types";
+import { ClayTile } from "@/components/ui/ClayTile";
 import {
+  FILE_KIND_CLAY,
   FILE_KIND_ICON,
-  fileIconColorClass,
+  FILE_KIND_ICON_COLOR,
   fileMetaLine,
 } from "./presentation";
 
-/** Plain divider row for a file (Home "บันทึกล่าสุด" and mobile Locker). Opens the detail modal. */
+/** Floating rounded file row (Home "บันทึกล่าสุด" and mobile Locker). Opens the detail modal. */
 export function FileRow({ file }: { file: FileView }) {
   const { openFile } = useFiles();
   const Icon = FILE_KIND_ICON[file.kind];
@@ -18,12 +20,14 @@ export function FileRow({ file }: { file: FileView }) {
     <button
       type="button"
       onClick={() => openFile(file)}
-      className="flex min-h-11 w-full items-center gap-3 border-b border-border py-3 text-left transition-colors hover:bg-surface-muted"
+      className="fk-row flex min-h-11 w-full items-center gap-3 p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
     >
-      <Icon size={22} className={`shrink-0 ${fileIconColorClass(file.workspace)}`} />
+      <ClayTile tone={FILE_KIND_CLAY[file.kind]} size={40} radius={14}>
+        <Icon size={18} className={FILE_KIND_ICON_COLOR[file.kind]} />
+      </ClayTile>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-semibold">{file.name}</div>
-        <div className="truncate text-xs text-text-2">
+        <div className="truncate text-[15px] font-semibold">{file.name}</div>
+        <div className="truncate text-[13px] text-text-2">
           {fileMetaLine(file, formatThaiDate(file.createdAt))}
         </div>
       </div>

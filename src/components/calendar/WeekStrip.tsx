@@ -42,7 +42,7 @@ function dominantStatus(tasks: TaskView[], now: Date): TaskDisplayStatus | null 
 }
 
 const NAV_BUTTON =
-  "grid size-11 place-items-center rounded-standard text-text-2 hover:bg-surface-muted";
+  "grid size-11 place-items-center rounded-full border border-border/60 bg-surface-glass text-text-2 shadow-soft transition-colors hover:text-text";
 
 export function WeekStrip({
   weekStart,
@@ -98,16 +98,22 @@ export function WeekStrip({
               aria-label={formatThaiFullDate(dateKeyToInstant(day.key))}
               aria-pressed={isSelected}
               className={[
-                "flex min-h-[60px] flex-col items-center justify-center gap-1 rounded-standard py-1.5",
-                isSelected ? "bg-private-tint" : "",
-                isToday ? "shadow-[inset_0_0_0_2px_var(--color-private)]" : "",
+                "flex min-h-[64px] flex-col items-center justify-center gap-1 rounded-standard py-1.5 transition-colors",
+                isSelected ? "bg-primary-soft/60" : "hover:bg-surface-muted/60",
               ].join(" ")}
             >
               <span className="text-xs text-text-2">
                 {WEEKDAY_LABELS_TH[index]}
               </span>
               <span
-                className={`text-sm font-semibold ${isToday ? "text-private-press" : "text-text"}`}
+                className={[
+                  "flex size-8 items-center justify-center rounded-full text-sm font-bold",
+                  isSelected
+                    ? "fk-clay fk-clay-blue text-primary-strong"
+                    : isToday
+                      ? "text-primary-strong ring-1 ring-inset ring-primary/50"
+                      : "text-text",
+                ].join(" ")}
               >
                 {day.day}
               </span>

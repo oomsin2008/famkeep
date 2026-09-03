@@ -25,7 +25,7 @@ interface MonthGridProps {
 }
 
 const NAV_BUTTON =
-  "grid size-11 place-items-center rounded-standard text-text-2 hover:bg-surface-muted";
+  "grid size-11 place-items-center rounded-full border border-border/60 bg-surface-glass text-text-2 shadow-soft transition-colors hover:text-text";
 
 export function MonthGrid({
   anchor,
@@ -64,11 +64,11 @@ export function MonthGrid({
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-7 border-l border-t border-border">
+      <div className="mt-4 grid grid-cols-7 overflow-hidden rounded-standard border-l border-t border-border/70">
         {WEEKDAY_LABELS_TH.map((label) => (
           <div
             key={label}
-            className="border-b border-r border-border bg-surface-muted py-2 text-center text-xs font-semibold text-text-2"
+            className="border-b border-r border-border/70 bg-surface-muted/70 py-2 text-center text-xs font-semibold text-text-2"
           >
             {label}
           </div>

@@ -12,7 +12,7 @@ interface StatusBadgeProps {
 export function StatusBadge({ status, children }: StatusBadgeProps) {
   return (
     <span
-      className={`inline-flex items-center gap-1 whitespace-nowrap rounded-badge border px-2.5 py-[3px] text-xs font-semibold ${STATUS_BADGE_CLASSES[status]}`}
+      className={`inline-flex items-center gap-1 whitespace-nowrap rounded-badge border px-2.5 py-[3px] text-[12.5px] font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.5)] ${STATUS_BADGE_CLASSES[status]}`}
     >
       {STATUS_LABELS[status]}
       {children}

@@ -8,7 +8,7 @@ import { BrandMark } from "./BrandMark";
  *  Shown only below the md breakpoint. */
 export function MobileTopHeader() {
   return (
-    <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-surface px-4 py-3.5 md:hidden">
+    <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border/70 bg-surface-glass px-4 py-3.5 backdrop-blur-xl md:hidden">
       <Link href="/" aria-label="FamKeep หน้าหลัก">
         <BrandMark size={16} />
       </Link>
@@ -25,7 +25,7 @@ export function MobileTopHeader() {
           aria-label="ตั้งค่า"
           className="flex size-11 items-center justify-center"
         >
-          <span className="flex size-8 items-center justify-center rounded-full bg-private-tint text-private">
+          <span className="flex size-8 items-center justify-center rounded-full bg-private-tint text-private shadow-soft ring-1 ring-white/60">
             <User size={18} />
           </span>
         </Link>

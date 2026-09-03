@@ -3,7 +3,7 @@ import { HomeView } from "@/components/home/HomeView";
 import { getOwnFirstName } from "@/lib/auth/profile";
 import { requireUser } from "@/lib/auth/require-user";
 import { getAccessibleTasks } from "@/lib/task-repository";
-import { getRecentFiles } from "@/lib/file-repository";
+import { getAccessibleFiles } from "@/lib/file-repository";
 
 export default async function HomePage() {
   const gate = await requireUser();
@@ -11,7 +11,7 @@ export default async function HomePage() {
 
   const [tasks, files, greetingName] = await Promise.all([
     getAccessibleTasks(gate.supabase),
-    getRecentFiles(gate.supabase, gate.user, 3),
+    getAccessibleFiles(gate.supabase, gate.user),
     getOwnFirstName(gate.supabase, gate.user.id),
   ]);
 

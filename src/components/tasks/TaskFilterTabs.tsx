@@ -16,7 +16,7 @@ interface TaskFilterTabsProps {
 /** 3-way ownership filter. Active state is neutral (dark), not a context color. */
 export function TaskFilterTabs({ value, onChange }: TaskFilterTabsProps) {
   return (
-    <div className="flex gap-6 overflow-x-auto">
+    <div className="inline-flex gap-1 rounded-pill border border-border/70 bg-surface-glass p-1 shadow-soft">
       {TABS.map((tab) => {
         const active = tab.key === value;
         return (
@@ -26,10 +26,10 @@ export function TaskFilterTabs({ value, onChange }: TaskFilterTabsProps) {
             onClick={() => onChange(tab.key)}
             aria-pressed={active}
             className={[
-              "min-h-11 whitespace-nowrap border-b-2 pb-2 text-[15px] font-semibold transition-colors",
+              "min-h-10 whitespace-nowrap rounded-pill px-4 text-[14px] font-semibold transition-colors",
               active
-                ? "border-text text-text"
-                : "border-transparent text-text-2 hover:text-text",
+                ? "bg-primary-soft text-primary-strong"
+                : "text-text-2 hover:text-text",
             ].join(" ")}
           >
             {tab.label}

@@ -1,14 +1,19 @@
 import Link from "next/link";
 import { CaretRight } from "@phosphor-icons/react";
 import { deriveTaskStatus } from "@/lib/tasks";
-import { formatThaiDate } from "@/lib/datetime";
+import { formatThaiDateTime } from "@/lib/datetime";
 import type { TaskView } from "@/lib/types";
 import type { TaskOrigin } from "@/components/shell/nav-config";
 import { StatusBadge } from "./StatusBadge";
-import { taskSubtitle, workspaceShortLabel } from "./presentation";
+import {
+  STATUS_DOT_CLASSES,
+  STATUS_LABELS,
+  taskSubtitle,
+  workspaceShortLabel,
+} from "./presentation";
 
-/** One task in a list. Divider-separated, entire row links to the detail screen.
- *  `from` is threaded into the URL so the mobile back header returns to the origin. */
+/** One task as a floating rounded row (mini card). Whole row links to detail;
+ *  `from` is threaded into the URL so the mobile back header returns to origin. */
 export function TaskRow({
   task,
   now,
@@ -19,25 +24,33 @@ export function TaskRow({
   from?: TaskOrigin;
 }) {
   const status = deriveTaskStatus(task, now);
-  const dueLabel = formatThaiDate(task.dueAt);
+  const dueLabel = task.dueAt ? formatThaiDateTime(task.dueAt) : "ไม่ระบุกำหนด";
   const href = from ? `/tasks/${task.id}?from=${from}` : `/tasks/${task.id}`;
+  const ariaLabel = task.dueAt
+    ? `${task.title} · ${STATUS_LABELS[status]} · กำหนด ${dueLabel}`
+    : `${task.title} · ${STATUS_LABELS[status]}`;
 
   return (
     <Link
       href={href}
       data-task-row={task.id}
-      className="flex min-h-11 items-start gap-3.5 border-b border-border py-3.5 transition-colors hover:bg-surface-muted"
+      aria-label={ariaLabel}
+      className="fk-row flex min-h-11 items-start gap-3.5 p-3.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
     >
+      <span
+        aria-hidden
+        className={`mt-1 size-3 shrink-0 rounded-full shadow-[0_2px_5px_rgba(120,86,54,0.25),inset_0_1px_1px_rgba(255,255,255,0.6)] ${STATUS_DOT_CLASSES[status]}`}
+      />
       <div className="min-w-0 flex-1">
         <div data-task-title className="text-[15px] font-semibold leading-snug">
           {task.title}
         </div>
 
-        <div className="mt-0.5 hidden text-xs text-text-2 md:block">
+        <div className="mt-0.5 hidden text-[13px] text-text-2 md:block">
           {taskSubtitle(task)}
         </div>
 
-        <div className="mt-1.5 flex flex-wrap items-center gap-2 md:hidden">
+        <div className="mt-2 flex flex-wrap items-center gap-2 md:hidden">
           <StatusBadge status={status} />
           <span className="text-xs text-text-2">
             {dueLabel} · {workspaceShortLabel(task.workspace)}
@@ -49,7 +62,7 @@ export function TaskRow({
         <StatusBadge status={status}>
           <span className="font-normal"> · {dueLabel}</span>
         </StatusBadge>
-        <CaretRight size={15} className="text-text-2/50" />
+        <CaretRight size={15} className="text-text-soft" />
       </div>
     </Link>
   );

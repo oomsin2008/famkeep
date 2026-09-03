@@ -25,13 +25,13 @@ export function ToggleSwitch({
     >
       <span
         className={[
-          "relative inline-flex h-6 w-10 items-center rounded-pill transition-colors",
-          checked ? "bg-private" : "bg-border",
+          "relative inline-flex h-6 w-10 items-center rounded-pill shadow-[inset_0_1px_3px_rgba(96,72,48,0.18)] transition-colors",
+          checked ? "bg-primary" : "bg-border",
         ].join(" ")}
       >
         <span
           className={[
-            "inline-block size-[18px] rounded-full bg-surface transition-transform",
+            "inline-block size-[18px] rounded-full bg-white shadow-[0_2px_6px_rgba(96,72,48,0.25)] transition-transform",
             checked ? "translate-x-[19px]" : "translate-x-[3px]",
           ].join(" ")}
         />

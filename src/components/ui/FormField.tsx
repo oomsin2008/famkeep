@@ -23,11 +23,11 @@ export function FormField({ id, label, required, error, children }: FormFieldPro
   return (
     <div>
       {id ? (
-        <label htmlFor={id} className="mb-1.5 block text-xs font-semibold text-text-2">
+        <label htmlFor={id} className="mb-1.5 block text-[13px] font-semibold text-text-2">
           {labelText}
         </label>
       ) : (
-        <div className="mb-1.5 text-xs font-semibold text-text-2">{labelText}</div>
+        <div className="mb-1.5 text-[13px] font-semibold text-text-2">{labelText}</div>
       )}
       {children}
       {error ? (

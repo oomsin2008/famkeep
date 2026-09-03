@@ -8,8 +8,8 @@ import { BrandMark } from "./BrandMark";
 import { NAV_ITEMS, getActiveNavHref, navAccent } from "./nav-config";
 
 const ACTIVE_ACCENT = {
-  private: "border-private font-semibold text-private",
-  family: "border-family font-semibold text-family",
+  private: "bg-primary-soft font-semibold text-primary-strong ring-1 ring-primary/20",
+  family: "bg-family-tint font-semibold text-family-press ring-1 ring-family/25",
 } as const;
 
 /** Persistent top navigation. Hidden below the md breakpoint. */
@@ -19,9 +19,9 @@ export function DesktopTopNav() {
   const accent = navAccent(pathname, useLockerTab());
 
   return (
-    <header className="sticky top-0 z-40 hidden border-b border-border bg-surface md:block">
-      <nav className="mx-auto flex h-16 w-full max-w-[1080px] items-center gap-7 px-7">
-        <Link href="/" aria-label="FamKeep หน้าหลัก" className="mr-auto">
+    <header className="sticky top-0 z-40 hidden border-b border-white/40 bg-surface-glass shadow-soft backdrop-blur-xl md:block">
+      <nav className="mx-auto flex h-16 w-full max-w-[1200px] items-center gap-2 px-8">
+        <Link href="/" aria-label="FamKeep หน้าหลัก" className="mr-4">
           <BrandMark />
         </Link>
 
@@ -33,10 +33,10 @@ export function DesktopTopNav() {
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={[
-                "flex h-16 items-center border-b-2 text-sm transition-colors",
+                "flex min-h-10 items-center rounded-pill px-4 text-sm transition-colors",
                 active
                   ? ACTIVE_ACCENT[accent]
-                  : "border-transparent text-text-2 hover:text-text",
+                  : "text-text-2 hover:bg-surface-muted/70 hover:text-text",
               ].join(" ")}
             >
               {item.label}
@@ -47,7 +47,7 @@ export function DesktopTopNav() {
         <button
           type="button"
           aria-label="ค้นหา"
-          className="flex size-9 items-center justify-center text-text-2"
+          className="ml-auto flex size-10 items-center justify-center rounded-full border border-white/60 bg-white/70 text-text-2 shadow-soft transition-colors hover:text-text"
         >
           <MagnifyingGlass size={18} />
         </button>
@@ -55,9 +55,9 @@ export function DesktopTopNav() {
         <Link
           href="/settings"
           aria-label="ตั้งค่า"
-          className="flex size-8 items-center justify-center rounded-full bg-private-tint text-private"
+          className="fk-clay fk-clay-blue flex size-10 items-center justify-center rounded-full text-primary-strong"
         >
-          <User size={17} />
+          <User size={18} weight="duotone" />
         </Link>
       </nav>
     </header>

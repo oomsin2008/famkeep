@@ -1,18 +1,14 @@
 import type { Metadata } from "next";
-import { Source_Serif_4, Noto_Serif_Thai } from "next/font/google";
+import { Prompt } from "next/font/google";
 import { AppShell } from "@/components/shell/AppShell";
 import { AppProviders } from "@/components/providers/AppProviders";
 import "./globals.css";
 
-const sourceSerif = Source_Serif_4({
-  variable: "--font-source-serif",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const notoSerifThai = Noto_Serif_Thai({
-  variable: "--font-noto-serif-thai",
-  subsets: ["thai"],
+/** Rounded, friendly modern sans with native Thai + Latin coverage. */
+const prompt = Prompt({
+  variable: "--font-prompt",
+  subsets: ["latin", "thai"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -26,7 +22,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="th"
-      className={`${sourceSerif.variable} ${notoSerifThai.variable} h-full antialiased`}
+      className={`${prompt.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <AppProviders>

@@ -20,9 +20,9 @@ const ROLE_LABEL: Record<FamilyRole, string> = {
 };
 
 const inputClass =
-  "w-full rounded-standard border border-border bg-surface px-3 py-2.5 text-sm outline-none focus:border-private";
+  "w-full rounded-standard border border-border bg-surface px-3.5 py-2.5 text-sm shadow-soft outline-none focus:border-primary";
 const primaryButtonClass =
-  "inline-flex min-h-11 w-fit items-center justify-center gap-2 rounded-standard bg-text px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-border disabled:text-text-2";
+  "fk-btn-primary fk-soft-hover inline-flex min-h-11 w-fit items-center justify-center gap-2 rounded-standard px-4 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60";
 
 export function CreateFamilyForm() {
   const [state, action, pending] = useActionState(
@@ -48,7 +48,7 @@ export function CreateFamilyForm() {
         {pending ? "กำลังสร้าง..." : "สร้างพื้นที่ครอบครัว"}
       </button>
       {state.error ? (
-        <p className="text-[12.5px] text-status-overdue-text">{state.error}</p>
+        <p className="text-[12.5px] text-danger-strong">{state.error}</p>
       ) : null}
     </form>
   );
@@ -89,7 +89,7 @@ export function AddMemberForm({ workspaceId }: { workspaceId: string }) {
         {pending ? "กำลังเพิ่ม..." : "เพิ่มสมาชิก"}
       </button>
       {state.error ? (
-        <p className="text-[12.5px] text-status-overdue-text">{state.error}</p>
+        <p className="text-[12.5px] text-danger-strong">{state.error}</p>
       ) : null}
       {state.ok ? (
         <p className="text-[12.5px] text-text-2">เพิ่มสมาชิกแล้ว</p>
@@ -113,18 +113,24 @@ function MemberRow({
   );
 
   return (
-    <div className="border-b border-border py-3">
+    <div className="py-3">
       <div className="flex min-h-11 items-center gap-3">
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-surface-muted text-[13px] font-semibold text-text">
+        <div className="fk-clay flex size-9 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold text-family-press">
           {memberInitials(member.displayName)}
         </div>
-        <div className="min-w-0 flex-1 truncate text-sm font-semibold">
+        <div className="min-w-0 flex-1 truncate text-[15px] font-semibold">
           {member.displayName}
           {member.isSelf ? (
             <span className="ml-1 text-[12px] font-normal text-text-2">(คุณ)</span>
           ) : null}
         </div>
-        <span className="shrink-0 text-[12.5px] text-text-2">
+        <span
+          className={`shrink-0 rounded-pill px-2.5 py-0.5 text-[12px] font-semibold ${
+            member.role === "owner"
+              ? "bg-family-tint text-family-press"
+              : "bg-surface-muted text-text-2"
+          }`}
+        >
           {ROLE_LABEL[member.role]}
         </span>
         {canManage && !member.isSelf ? (
@@ -135,7 +141,7 @@ function MemberRow({
               type="submit"
               disabled={pending}
               aria-label={`นำ ${member.displayName} ออกจากครอบครัว`}
-              className="flex size-9 items-center justify-center rounded-full text-text-2 hover:bg-surface-muted hover:text-status-overdue-text disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex size-11 items-center justify-center rounded-full text-text-2 hover:bg-danger-soft hover:text-danger-strong disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Trash size={16} />
             </button>
@@ -143,7 +149,7 @@ function MemberRow({
         ) : null}
       </div>
       {state.error ? (
-        <p className="mt-1 text-[12.5px] text-status-overdue-text">{state.error}</p>
+        <p className="mt-1 text-[12.5px] text-danger-strong">{state.error}</p>
       ) : null}
     </div>
   );
@@ -159,7 +165,7 @@ export function FamilyMemberList({
   canManage: boolean;
 }) {
   return (
-    <div className="flex flex-col">
+    <div className="fk-card flex flex-col divide-y divide-border/70 px-4 py-1">
       {members.map((member) => (
         <MemberRow
           key={member.profileId}

@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { UsersThree } from "@phosphor-icons/react/dist/ssr";
+import { ClayTile } from "@/components/ui/ClayTile";
+import { memberInitials } from "@/lib/family/model";
 import type { FamilyOverview } from "@/lib/family/model";
 import {
   AddMemberForm,
@@ -37,7 +40,7 @@ export function FamilySection({ overview, configured }: FamilySectionProps) {
         </p>
         <Link
           href="/settings/line"
-          className="text-[13px] font-semibold text-private"
+          className="fk-btn-primary fk-soft-hover inline-flex min-h-11 w-fit items-center rounded-standard px-4 text-[13px] font-semibold"
         >
           ไปที่การเชื่อมต่อ LINE
         </Link>
@@ -64,15 +67,34 @@ export function FamilySection({ overview, configured }: FamilySectionProps) {
 
   return (
     <Shell>
-      <div>
-        <h1 className="text-2xl font-semibold">{workspace.name}</h1>
-        <p className="mt-1 text-[13px] text-text-2">
-          สมาชิกที่ได้รับอนุมัติสามารถเข้าถึงไฟล์และงานในพื้นที่ครอบครัวนี้ได้
-        </p>
+      <div className="fk-card relative flex items-center gap-4 overflow-hidden p-5 md:p-6">
+        <span className="fk-blob -right-12 -top-12 size-40 bg-brand-peach opacity-50" />
+        <ClayTile tone="peach" size={60} radius={20}>
+          <UsersThree size={28} weight="duotone" className="text-family-press" />
+        </ClayTile>
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-[20px] font-bold md:text-[22px]">
+            {workspace.name}
+          </h1>
+          <p className="mt-0.5 text-[12.5px] text-text-2">
+            สมาชิก {members.length} คน · เข้าถึงไฟล์และงานร่วมกัน
+          </p>
+        </div>
+        <div className="hidden -space-x-2 sm:flex">
+          {members.slice(0, 4).map((m) => (
+            <span
+              key={m.profileId}
+              className="fk-clay fk-clay-blue flex size-8 items-center justify-center rounded-full text-[11px] font-bold text-primary-strong ring-2 ring-white"
+              title={m.displayName}
+            >
+              {memberInitials(m.displayName)}
+            </span>
+          ))}
+        </div>
       </div>
 
       {issue ? (
-        <p className="text-[12.5px] text-status-overdue-text">
+        <p className="text-[12.5px] text-danger-strong">
           โหลดรายชื่อสมาชิกไม่สำเร็จ ({issue})
         </p>
       ) : null}
@@ -84,7 +106,7 @@ export function FamilySection({ overview, configured }: FamilySectionProps) {
       />
 
       {isOwner ? (
-        <div className="rounded-standard border border-border bg-surface-muted p-4">
+        <div className="fk-card p-5">
           <AddMemberForm workspaceId={workspace.id} />
         </div>
       ) : (

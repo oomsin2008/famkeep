@@ -26,7 +26,7 @@ import { ReminderPicker } from "./ReminderPicker";
 import { STATUS_BADGE_CLASSES, STATUS_LABELS } from "./presentation";
 
 const boxClass =
-  "w-full rounded-standard border border-border bg-surface px-3 py-2.5 text-sm outline-none focus:border-private";
+  "w-full rounded-standard border border-border bg-surface px-3.5 py-2.5 text-sm shadow-soft outline-none transition-colors focus:border-primary";
 
 function isPastBangkok(date: string, time: string): boolean {
   return new Date(bangkokDateTimeToUtcIso(date, time)).getTime() < Date.now();
@@ -161,10 +161,10 @@ export function TaskDetailView({
   };
 
   return (
-    <div className="md:max-w-[900px]">
-      <h1 className="mb-6 hidden text-2xl font-semibold md:block">รายละเอียดงาน</h1>
+    <div className="md:max-w-[940px]">
+      <h1 className="mb-6 hidden text-[28px] font-semibold md:block">รายละเอียดงาน</h1>
 
-      <div className="flex flex-col gap-6 md:flex-row md:gap-10">
+      <div className="fk-card flex flex-col gap-6 p-5 md:flex-row md:gap-10 md:p-7">
         {/* Left column */}
         <div className="flex flex-1 flex-col gap-5">
           <div>
@@ -227,8 +227,8 @@ export function TaskDetailView({
                     className={[
                       "min-h-11 rounded-pill border px-4 text-xs font-semibold disabled:cursor-not-allowed",
                       active
-                        ? STATUS_BADGE_CLASSES[opt.activeKey]
-                        : "border-border text-text-2",
+                        ? `${STATUS_BADGE_CLASSES[opt.activeKey]} shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]`
+                        : "border-border bg-surface text-text-2 hover:text-text",
                     ].join(" ")}
                   >
                     {opt.label}
@@ -290,8 +290,8 @@ export function TaskDetailView({
             </div>
 
             {!editingDue ? (
-              <div className="flex items-center gap-2 rounded-standard border border-border px-3 py-2.5 text-sm">
-                <CalendarBlank size={16} className="text-text-2" />
+              <div className="flex items-center gap-2 rounded-standard border border-border bg-surface px-3.5 py-2.5 text-sm shadow-soft">
+                <CalendarBlank size={16} className="text-primary-strong" />
                 {formatThaiDateTime(task.dueAt)}
               </div>
             ) : (
@@ -322,8 +322,8 @@ export function TaskDetailView({
                     onClick={saveDue}
                     disabled={duePending}
                     className={[
-                      "min-h-11 rounded-standard px-4 text-sm font-semibold text-white disabled:cursor-not-allowed",
-                      duePending ? "bg-border text-text-2" : "bg-private",
+                      "fk-soft-hover min-h-11 rounded-standard px-4 text-sm font-semibold disabled:cursor-not-allowed",
+                      duePending ? "bg-border text-text-2" : "fk-btn-primary",
                     ].join(" ")}
                   >
                     {duePending ? "กำลังบันทึก…" : "บันทึก"}
@@ -335,7 +335,7 @@ export function TaskDetailView({
                       setDueError("");
                     }}
                     disabled={duePending}
-                    className="min-h-11 rounded-standard border border-border px-4 text-sm disabled:cursor-not-allowed"
+                    className="min-h-11 rounded-standard border border-border bg-surface-strong px-4 text-sm shadow-soft disabled:cursor-not-allowed"
                   >
                     ยกเลิก
                   </button>

@@ -27,14 +27,14 @@ export function ReminderPicker({ value, onAdd, onRemove }: ReminderPickerProps) 
         return (
           <span
             key={preset}
-            className="inline-flex items-center gap-1.5 rounded-pill bg-private-tint py-1.5 pl-3 pr-2.5 text-xs font-semibold text-private-press"
+            className="inline-flex items-center gap-1.5 rounded-pill bg-primary-soft py-1.5 pl-3.5 pr-2.5 text-[12.5px] font-semibold text-primary-strong shadow-[0_4px_10px_rgba(63,127,216,0.15),inset_0_1px_0_rgba(255,255,255,0.7)] ring-1 ring-primary/25"
           >
             {label}
             <button
               type="button"
               onClick={() => onRemove(preset)}
               aria-label={`ลบการแจ้งเตือน ${label}`}
-              className="relative -mr-1 flex items-center justify-center text-private-press/75"
+              className="relative -mr-1 flex items-center justify-center text-primary-strong/70"
             >
               <span aria-hidden className="absolute -inset-4" />
               <X size={13} />
@@ -48,7 +48,7 @@ export function ReminderPicker({ value, onAdd, onRemove }: ReminderPickerProps) 
           <Popover.Trigger asChild>
             <button
               type="button"
-              className="inline-flex min-h-11 items-center rounded-pill border border-dashed border-border px-3 text-xs font-semibold text-text-2"
+              className="inline-flex min-h-11 items-center rounded-pill border border-dashed border-border bg-surface px-3.5 text-[12.5px] font-semibold text-text-2 hover:text-text"
             >
               + เพิ่มการแจ้งเตือน
             </button>
@@ -57,14 +57,14 @@ export function ReminderPicker({ value, onAdd, onRemove }: ReminderPickerProps) 
             <Popover.Content
               align="start"
               sideOffset={6}
-              className="z-50 flex w-64 flex-col rounded-standard border border-border bg-surface-muted p-2 shadow-frame"
+              className="fk-glass z-50 flex w-64 flex-col rounded-standard p-2"
             >
               {available.map((preset) => (
                 <Popover.Close asChild key={preset}>
                   <button
                     type="button"
                     onClick={() => onAdd(preset)}
-                    className="min-h-11 rounded-[6px] px-2.5 text-left text-[13px] hover:bg-black/5"
+                    className="min-h-11 rounded-standard px-2.5 text-left text-[13px] hover:bg-surface-muted/70"
                   >
                     {REMINDER_PRESET_LABELS[preset]}
                   </button>

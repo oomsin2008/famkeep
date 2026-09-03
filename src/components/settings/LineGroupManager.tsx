@@ -22,7 +22,7 @@ export function LineGroupManager({ ws }: { ws: LineWorkspaceConnection }) {
   );
 
   return (
-    <div className="flex flex-col gap-2 border-t border-border py-4">
+    <div className="flex flex-col gap-2 rounded-standard border border-border/70 bg-surface-muted/60 p-4">
       <div className="text-sm font-semibold">
         กลุ่ม LINE ของ {ws.workspaceName ?? "ครอบครัว"}
       </div>
@@ -39,12 +39,12 @@ export function LineGroupManager({ ws }: { ws: LineWorkspaceConnection }) {
               <button
                 type="submit"
                 disabled={unbinding}
-                className={`${buttonBase} border border-border text-text-2`}
+                className={`${buttonBase} border border-border bg-surface-strong text-text-2 shadow-soft`}
               >
                 {unbinding ? "กำลังยกเลิก..." : "ยกเลิกการเชื่อมกลุ่ม"}
               </button>
               {unbindState.error ? (
-                <p className="mt-1 text-[12.5px] text-status-overdue-text">{unbindState.error}</p>
+                <p className="mt-1 text-[12.5px] text-danger-strong">{unbindState.error}</p>
               ) : null}
             </form>
           ) : null}
@@ -56,11 +56,11 @@ export function LineGroupManager({ ws }: { ws: LineWorkspaceConnection }) {
           </p>
           <input type="hidden" name="workspaceId" value={ws.workspaceId} />
           <input type="hidden" name="conversationId" value={ws.pendingConversationId} />
-          <button type="submit" disabled={approving} className={`${buttonBase} bg-text text-white`}>
+          <button type="submit" disabled={approving} className={`${buttonBase} fk-btn-primary fk-soft-hover`}>
             {approving ? "กำลังอนุมัติ..." : "อนุมัติกลุ่มนี้"}
           </button>
           {approveState.error ? (
-            <p className="text-[12.5px] text-status-overdue-text">{approveState.error}</p>
+            <p className="text-[12.5px] text-danger-strong">{approveState.error}</p>
           ) : null}
         </form>
       ) : (

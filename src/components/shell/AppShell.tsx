@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { IconContext } from "@phosphor-icons/react";
+import { BackdropBlobs } from "@/components/ui/BackdropBlobs";
 import { DesktopTopNav } from "./DesktopTopNav";
 import { MobileBackHeader } from "./MobileBackHeader";
 import { MobileBottomNav } from "./MobileBottomNav";
@@ -21,10 +22,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <IconContext.Provider value={{ weight: "duotone" }}>
+      <BackdropBlobs />
       <DesktopTopNav />
       {detail ? <MobileBackHeader /> : <MobileTopHeader />}
 
-      <main className="mx-auto w-full max-w-[1080px] flex-1 px-4 py-6 md:px-7 md:py-8">
+      <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-7 md:px-8 md:py-10">
         {children}
       </main>
 

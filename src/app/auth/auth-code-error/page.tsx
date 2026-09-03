@@ -49,7 +49,7 @@ export default async function AuthCodeErrorPage({
       <h1 className="text-2xl font-semibold">เข้าสู่ระบบไม่สำเร็จ</h1>
       <p className="text-sm leading-relaxed text-text-2">{message}</p>
       {diagnostics.length > 0 ? (
-        <dl className="grid gap-2 rounded-standard bg-surface-muted p-4 text-[12.5px] md:grid-cols-[140px_1fr]">
+        <dl className="fk-card grid gap-2 p-4 text-[12.5px] md:grid-cols-[140px_1fr]">
           {diagnostics.map((item) => (
             <div key={item.label} className="contents">
               <dt className="text-text-2">{item.label}</dt>
@@ -62,7 +62,7 @@ export default async function AuthCodeErrorPage({
       ) : null}
       <Link
         href="/settings/line"
-        className="inline-flex min-h-11 w-fit items-center rounded-standard border border-border px-4 text-sm font-semibold"
+        className="fk-btn-primary fk-soft-hover inline-flex min-h-11 w-fit items-center rounded-standard px-4 text-sm font-semibold"
       >
         กลับไปที่การเชื่อมต่อ LINE
       </Link>

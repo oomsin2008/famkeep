@@ -4,7 +4,11 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTasks } from "@/components/providers/TasksProvider";
 import { useToast } from "@/components/providers/ToastProvider";
-import { bangkokDateTimeToUtcIso } from "@/lib/datetime";
+import {
+  bangkokDateKey,
+  bangkokDateTimeToUtcIso,
+  bangkokTimeKey,
+} from "@/lib/datetime";
 import { MAX_TASK_REMINDERS } from "@/lib/tasks";
 import { createTaskAction } from "@/lib/task-actions";
 import type { TaskWorkspaceOptions } from "@/lib/task-repository";
@@ -27,18 +31,25 @@ type FieldError = Partial<
   Record<"title" | "workspace" | "dueDate" | "dueTime" | "form", string>
 >;
 
-const EMPTY: FormState = {
-  title: "",
-  description: "",
-  workspace: "",
-  assigneeId: "",
-  dueDate: "",
-  dueTime: "",
-  reminders: [],
-};
+/** Default reminder for a new task: fire exactly at the due time. */
+const DEFAULT_REMINDERS: ReminderPreset[] = ["at_due_time"];
+
+/** Initial form: private workspace (if any), due = today + now (Asia/Bangkok). */
+function makeInitialForm(workspaces: TaskWorkspaceOptions): FormState {
+  const now = new Date();
+  return {
+    title: "",
+    description: "",
+    workspace: workspaces.privateWorkspaceId ? "private" : "",
+    assigneeId: "",
+    dueDate: bangkokDateKey(now),
+    dueTime: bangkokTimeKey(now),
+    reminders: DEFAULT_REMINDERS,
+  };
+}
 
 const inputClass =
-  "w-full rounded-standard border border-border bg-surface px-3 py-2.5 text-sm outline-none focus:border-private";
+  "w-full rounded-standard border border-border bg-surface px-3.5 py-2.5 text-sm shadow-soft outline-none transition-colors focus:border-primary";
 
 function validate(form: FormState): FieldError {
   const errors: FieldError = {};
@@ -48,7 +59,8 @@ function validate(form: FormState): FieldError {
   if (!form.dueTime) errors.dueTime = "กรุณาเลือกเวลา";
   if (form.dueDate && form.dueTime) {
     const dueAt = new Date(bangkokDateTimeToUtcIso(form.dueDate, form.dueTime));
-    if (dueAt.getTime() < Date.now()) {
+    // compare at minute resolution so a task due "now" (the default) is allowed
+    if (Math.floor(dueAt.getTime() / 60000) < Math.floor(Date.now() / 60000)) {
       errors.dueDate = "กำหนดส่งต้องไม่ใช่เวลาที่ผ่านมาแล้ว";
     }
   }
@@ -64,7 +76,7 @@ export function CreateTaskForm({
   const { setFilter } = useTasks();
   const toast = useToast();
 
-  const [form, setForm] = useState<FormState>(EMPTY);
+  const [form, setForm] = useState<FormState>(() => makeInitialForm(workspaces));
   const [errors, setErrors] = useState<FieldError>({});
   const [pending, startTransition] = useTransition();
 
@@ -139,11 +151,11 @@ export function CreateTaskForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="md:max-w-[900px]">
-      <h1 className="mb-6 hidden text-2xl font-semibold md:block">สร้างงานใหม่</h1>
+    <form onSubmit={onSubmit} className="md:max-w-[960px]">
+      <h1 className="mb-6 hidden text-[28px] font-semibold md:block">สร้างงานใหม่</h1>
 
-      <div className="flex flex-col gap-5 md:flex-row md:gap-10">
-        <div className="flex flex-1 flex-col gap-5">
+      <div className="flex flex-col gap-5 md:flex-row md:items-start md:gap-6">
+        <div className="fk-card flex flex-1 flex-col gap-5 p-5 md:p-7">
           <FormField id="task-title" label="ชื่องาน" required error={errors.title}>
             <input
               id="task-title"
@@ -176,7 +188,7 @@ export function CreateTaskForm({
           </FormField>
         </div>
 
-        <div className="flex flex-col gap-5 md:w-72">
+        <div className="fk-card flex flex-col gap-5 p-5 md:w-[300px] md:p-6">
           <FormField label="พื้นที่" required error={errors.workspace}>
             <div className="flex gap-2">
               {availableWorkspaces.map((ws) => {
@@ -191,12 +203,12 @@ export function CreateTaskForm({
                     }}
                     aria-pressed={active}
                     className={[
-                      "min-h-11 rounded-pill px-3.5 text-xs font-semibold",
+                      "min-h-11 rounded-pill px-4 text-[13px] font-semibold transition-colors",
                       active && ws === "private"
-                        ? "bg-private-tint text-private-press"
+                        ? "bg-private-tint text-private-press ring-1 ring-private/25"
                         : active
-                          ? "bg-family-tint text-family-press"
-                          : "border border-border text-text-2",
+                          ? "bg-family-tint text-family-press ring-1 ring-family/25"
+                          : "border border-border bg-surface text-text-2 hover:text-text",
                     ].join(" ")}
                   >
                     {workspaceLabel(ws, familyName)}
@@ -259,8 +271,10 @@ export function CreateTaskForm({
               type="submit"
               disabled={pending}
               className={[
-                "min-h-11 rounded-standard px-5 text-sm font-semibold text-white disabled:cursor-not-allowed",
-                pending ? "bg-border text-text-2" : "bg-brand-gradient",
+                "fk-soft-hover min-h-11 rounded-standard px-5 text-sm font-semibold disabled:cursor-not-allowed",
+                pending
+                  ? "bg-border text-text-2"
+                  : "fk-btn-primary",
               ].join(" ")}
             >
               {pending ? "กำลังบันทึก…" : "บันทึกงาน"}
@@ -269,7 +283,7 @@ export function CreateTaskForm({
               type="button"
               onClick={() => router.push("/tasks")}
               disabled={pending}
-              className="min-h-11 rounded-standard border border-border px-5 text-sm disabled:cursor-not-allowed"
+              className="min-h-11 rounded-standard border border-border bg-surface-strong px-5 text-sm shadow-soft disabled:cursor-not-allowed"
             >
               ยกเลิก
             </button>
