@@ -96,11 +96,3 @@ export interface FileView extends FileItem {
 }
 
 export type FamilyRole = "owner" | "member";
-
-export interface FamilyMember {
-  id: string;
-  displayName: string;
-  /** Short label for the avatar circle. */
-  initials: string;
-  role: FamilyRole;
-}
