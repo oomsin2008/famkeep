@@ -2,7 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, DownloadSimple, Eye, PencilSimple, X } from "@phosphor-icons/react";
+import {
+  Check,
+  DownloadSimple,
+  Eye,
+  PencilSimple,
+  X,
+} from "@phosphor-icons/react";
 import { useFiles } from "@/components/providers/FilesProvider";
 import { useToast } from "@/components/providers/ToastProvider";
 import { InlineDeleteButton } from "@/components/ui/InlineDeleteButton";
@@ -33,8 +39,20 @@ function splitFilename(name: string): { stem: string; ext: string } {
  * are lazy so a large locker does not fire every download at once. The preview
  * box keeps a fixed aspect ratio, so the icon fallback never shifts layout.
  * The pencil renames the file in place; the extension is fixed and never sent.
+ * In select mode a checkbox replaces the row actions and clicking the card
+ * toggles selection instead of opening the file.
  */
-export function FileCard({ file }: { file: FileView }) {
+export function FileCard({
+  file,
+  selectMode = false,
+  selected = false,
+  onToggleSelect,
+}: {
+  file: FileView;
+  selectMode?: boolean;
+  selected?: boolean;
+  onToggleSelect?: () => void;
+}) {
   const { openFile } = useFiles();
   const toast = useToast();
   const router = useRouter();
@@ -70,8 +88,16 @@ export function FileCard({ file }: { file: FileView }) {
     });
   }
 
+  const openOrToggle =
+    selectMode && onToggleSelect ? onToggleSelect : () => openFile(file);
+
   return (
-    <article className="fk-row flex w-full flex-col overflow-hidden">
+    <article
+      className={[
+        "fk-row flex w-full flex-col overflow-hidden transition-shadow",
+        selected ? "ring-2 ring-primary" : "",
+      ].join(" ")}
+    >
       <div className="relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden bg-surface-muted">
         <div className="size-full">
           {showThumb ? (
@@ -109,16 +135,34 @@ export function FileCard({ file }: { file: FileView }) {
         {!editing ? (
           <button
             type="button"
-            onClick={() => openFile(file)}
-            aria-label={`${canPreview ? "เปิดดูตัวอย่าง" : "เปิดรายละเอียด"} ${file.name}`}
+            onClick={openOrToggle}
+            aria-label={
+              selectMode
+                ? `${selected ? "เอาออกจากที่เลือก" : "เลือก"} ${file.name}`
+                : `${canPreview ? "เปิดดูตัวอย่าง" : "เปิดรายละเอียด"} ${file.name}`
+            }
             className="absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
           >
             <span className="sr-only">
-              {canPreview ? "เปิดดูตัวอย่าง" : "เปิดรายละเอียด"} {file.name}
+              {selectMode
+                ? `${selected ? "เอาออกจากที่เลือก" : "เลือก"} ${file.name}`
+                : `${canPreview ? "เปิดดูตัวอย่าง" : "เปิดรายละเอียด"} ${file.name}`}
             </span>
           </button>
         ) : null}
-        {!editing ? (
+        {selectMode ? (
+          <span
+            aria-hidden
+            className={[
+              "absolute left-1.5 top-1.5 z-10 flex size-6 items-center justify-center rounded-md border shadow-soft",
+              selected
+                ? "border-primary bg-primary text-white"
+                : "border-border bg-surface-strong/90 backdrop-blur-sm",
+            ].join(" ")}
+          >
+            {selected ? <Check size={15} weight="bold" /> : null}
+          </span>
+        ) : !editing ? (
           <div className="absolute right-1.5 top-1.5 z-10 flex items-center gap-1">
             <button
               type="button"
@@ -184,7 +228,7 @@ export function FileCard({ file }: { file: FileView }) {
       ) : (
         <button
           type="button"
-          onClick={() => openFile(file)}
+          onClick={openOrToggle}
           className="flex min-w-0 flex-col gap-0.5 px-3 py-2.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
         >
           <span className="truncate text-[13.5px] font-semibold">{file.name}</span>

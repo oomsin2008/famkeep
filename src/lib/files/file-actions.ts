@@ -128,11 +128,16 @@ export interface BulkDeleteFilesResult {
 }
 
 /**
- * Soft-delete every file in the caller's private Locker. Each file goes through
- * the same file-delete Edge Function as a single delete (metadata + best-effort
- * Drive cleanup), one at a time — the private locker is small in practice.
+ * Soft-delete the given files. Each id goes through the same file-delete Edge
+ * Function as a single delete (metadata + best-effort Drive cleanup), one at a
+ * time. Ids the caller cannot access are counted as failures.
  */
-export async function deleteAllMyFilesAction(): Promise<BulkDeleteFilesResult> {
+export async function deleteFilesAction(
+  fileIds: string[],
+): Promise<BulkDeleteFilesResult> {
+  const ids = [...new Set(fileIds.filter(Boolean))];
+  if (ids.length === 0) return { ok: true, count: 0, failed: 0, error: null };
+
   const config = getSupabaseConfig();
   if (!config) return { ok: false, count: 0, failed: 0, error: GENERIC };
 
@@ -148,16 +153,6 @@ export async function deleteAllMyFilesAction(): Promise<BulkDeleteFilesResult> {
   if (!session?.access_token) {
     return { ok: false, count: 0, failed: 0, error: AUTH };
   }
-
-  const { data: rows, error: listErr } = await supabase
-    .from("files")
-    .select("id, workspaces!inner(type)")
-    .is("deleted_at", null)
-    .eq("workspaces.type", "private");
-  if (listErr) return { ok: false, count: 0, failed: 0, error: GENERIC };
-
-  const ids = ((rows as { id: string }[] | null) ?? []).map((r) => r.id);
-  if (ids.length === 0) return { ok: true, count: 0, failed: 0, error: null };
 
   const base = config.supabaseUrl.replace(/\/+$/, "");
   let deleted = 0;

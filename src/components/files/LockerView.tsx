@@ -1,23 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import * as Popover from "@radix-ui/react-popover";
 import {
   ArrowsDownUp,
   CaretDown,
   Check,
+  CheckSquare,
+  DownloadSimple,
   FileArrowUp,
   ListBullets,
   SquaresFour,
+  Trash,
+  X,
   type Icon,
 } from "@phosphor-icons/react";
 import { useFiles } from "@/components/providers/FilesProvider";
+import { useToast } from "@/components/providers/ToastProvider";
 import { InlineDeleteButton } from "@/components/ui/InlineDeleteButton";
-import { DeleteAllDialog } from "@/components/ui/DeleteAllDialog";
-import {
-  deleteAllMyFilesAction,
-  deleteFileAction,
-} from "@/lib/files/file-actions";
+import { deleteFileAction, deleteFilesAction } from "@/lib/files/file-actions";
 import { formatThaiDate } from "@/lib/datetime";
 import type { FileView, Workspace } from "@/lib/types";
 import { ClayTile } from "@/components/ui/ClayTile";
@@ -91,6 +93,15 @@ function sortFiles(
   return [...files].sort((a, b) => sign * compareFiles(a, b, field));
 }
 
+function triggerDownload(file: FileView) {
+  const a = document.createElement("a");
+  a.href = `/api/files/${file.id}/content?disposition=attachment`;
+  a.download = file.name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
 export function LockerView({
   files,
   familyName,
@@ -101,15 +112,69 @@ export function LockerView({
   familyMemberCount: number;
 }) {
   const { lockerTab, setLockerTab, openFile } = useFiles();
+  const toast = useToast();
+  const router = useRouter();
   const [view, setView] = useState<ViewMode>("grid");
   const [sortField, setSortField] = useState<SortField>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
+  const [deleting, startDelete] = useTransition();
+
+  // Switching lockers drops the selection (adjust state during render).
+  const [seenTab, setSeenTab] = useState(lockerTab);
+  if (seenTab !== lockerTab) {
+    setSeenTab(lockerTab);
+    setSelectMode(false);
+    setSelected(new Set());
+  }
 
   const visible = sortFiles(
     files.filter((f) => f.workspace === lockerTab),
     sortField,
     sortDir,
   );
+
+  const selectedFiles = visible.filter((f) => selected.has(f.id));
+  const selectedCount = selectedFiles.length;
+  const allSelected = visible.length > 0 && selectedCount === visible.length;
+
+  function toggle(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function exitSelect() {
+    setSelectMode(false);
+    setSelected(new Set());
+  }
+
+  function downloadSelected() {
+    if (selectedCount === 0) return;
+    selectedFiles.forEach((file, i) => {
+      window.setTimeout(() => triggerDownload(file), i * 400);
+    });
+    toast.show("success", `กำลังดาวน์โหลด ${selectedCount} ไฟล์`);
+  }
+
+  function deleteSelected() {
+    if (selectedCount === 0 || deleting) return;
+    const ids = selectedFiles.map((f) => f.id);
+    startDelete(async () => {
+      const res = await deleteFilesAction(ids);
+      router.refresh();
+      if (res.ok) {
+        toast.show("success", `ลบ ${res.count} ไฟล์แล้ว`);
+        exitSelect();
+      } else {
+        toast.show("error", res.error ?? "ลบไม่สำเร็จ");
+      }
+    });
+  }
 
   function pickField(field: SortField) {
     setSortField(field);
@@ -155,12 +220,15 @@ export function LockerView({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <UploadImageDialog />
-          {lockerTab === "private" ? (
-            <DeleteAllDialog
-              noun="ไฟล์"
-              count={visible.length}
-              onConfirm={deleteAllMyFilesAction}
-            />
+          {!selectMode && visible.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => setSelectMode(true)}
+              className="inline-flex min-h-12 items-center gap-1.5 rounded-pill border border-border/70 bg-surface-glass px-4 text-[13px] font-semibold text-text-2 shadow-soft hover:text-text"
+            >
+              <CheckSquare size={16} />
+              เลือก
+            </button>
           ) : null}
           <SortMenu
             field={sortField}
@@ -171,6 +239,65 @@ export function LockerView({
           <ViewToggle view={view} onChange={setView} />
         </div>
       </div>
+
+      {selectMode ? (
+        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-standard border border-primary/25 bg-primary-soft px-3 py-2">
+          <button
+            type="button"
+            onClick={() =>
+              setSelected(
+                allSelected ? new Set() : new Set(visible.map((f) => f.id)),
+              )
+            }
+            className="inline-flex items-center gap-2 text-[13px] font-semibold text-primary-strong"
+          >
+            <span
+              aria-hidden
+              className={[
+                "flex size-5 items-center justify-center rounded-md border",
+                allSelected
+                  ? "border-primary bg-primary text-white"
+                  : "border-primary/50 bg-surface",
+              ].join(" ")}
+            >
+              {allSelected ? <Check size={13} weight="bold" /> : null}
+            </span>
+            {allSelected ? "ล้างการเลือก" : "เลือกทั้งหมด"}
+          </button>
+
+          <span className="text-[13px] text-primary-strong/80">
+            เลือกแล้ว {selectedCount}
+          </span>
+
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              type="button"
+              onClick={downloadSelected}
+              disabled={selectedCount === 0}
+              className="fk-btn-primary fk-soft-hover inline-flex min-h-10 items-center gap-1.5 rounded-standard px-3 text-[13px] font-semibold disabled:opacity-45"
+            >
+              <DownloadSimple size={15} weight="bold" />
+              ดาวน์โหลด
+              {selectedCount > 0 ? ` (${selectedCount})` : ""}
+            </button>
+
+            <BulkDeletePopover
+              count={selectedCount}
+              pending={deleting}
+              onConfirm={deleteSelected}
+            />
+
+            <button
+              type="button"
+              onClick={exitSelect}
+              className="inline-flex min-h-10 items-center gap-1 rounded-standard border border-border bg-surface-strong px-3 text-[13px] font-semibold"
+            >
+              <X size={14} />
+              เสร็จ
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {visible.length === 0 ? (
         <div className="fk-card mt-5 flex flex-col items-center gap-3 px-6 py-14 text-center">
@@ -186,7 +313,13 @@ export function LockerView({
       ) : view === "grid" ? (
         <div className="mt-5 grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {visible.map((file) => (
-            <FileCard key={file.id} file={file} />
+            <FileCard
+              key={file.id}
+              file={file}
+              selectMode={selectMode}
+              selected={selected.has(file.id)}
+              onToggleSelect={() => toggle(file.id)}
+            />
           ))}
         </div>
       ) : (
@@ -195,6 +328,7 @@ export function LockerView({
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs text-text-2">
+                  {selectMode ? <th className="w-8 pb-2" /> : null}
                   <th className="w-1/2 px-2 pb-2 font-semibold">ชื่อไฟล์</th>
                   <th className="pb-2 font-semibold">ชนิด</th>
                   <th className="pb-2 font-semibold">ผู้บันทึก</th>
@@ -209,6 +343,9 @@ export function LockerView({
                   <LockerTableRow
                     key={file.id}
                     file={file}
+                    selectMode={selectMode}
+                    selected={selected.has(file.id)}
+                    onToggle={() => toggle(file.id)}
                     onOpen={() => openFile(file)}
                   />
                 ))}
@@ -218,12 +355,74 @@ export function LockerView({
 
           <div className="mt-5 flex flex-col gap-2.5 md:hidden">
             {visible.map((file) => (
-              <FileRow key={file.id} file={file} deletable />
+              <FileRow
+                key={file.id}
+                file={file}
+                deletable
+                selectMode={selectMode}
+                selected={selected.has(file.id)}
+                onToggleSelect={() => toggle(file.id)}
+              />
             ))}
           </div>
         </>
       )}
     </div>
+  );
+}
+
+/** "ลบ (N)" in the selection bar, guarded by a one-tap Popover confirm. */
+function BulkDeletePopover({
+  count,
+  pending,
+  onConfirm,
+}: {
+  count: number;
+  pending: boolean;
+  onConfirm: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Popover.Root open={open} onOpenChange={(n) => !pending && setOpen(n)}>
+      <Popover.Trigger asChild>
+        <button
+          type="button"
+          disabled={count === 0}
+          className="fk-btn-danger fk-soft-hover inline-flex min-h-10 items-center gap-1.5 rounded-standard px-3 text-[13px] font-semibold disabled:opacity-45"
+        >
+          <Trash size={15} weight="bold" />
+          ลบ{count > 0 ? ` (${count})` : ""}
+        </button>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content
+          align="end"
+          sideOffset={6}
+          className="fk-glass z-50 w-60 rounded-standard p-3"
+        >
+          <p className="text-[13px] font-semibold">ลบ {count} ไฟล์ที่เลือก?</p>
+          <p className="mt-1 text-[12px] text-text-2">
+            กู้คืนเองไม่ได้ ต้นฉบับใน Drive ถูกย้ายไปโฟลเดอร์ที่ลบแล้ว
+          </p>
+          <div className="mt-3 flex gap-2">
+            <button
+              type="button"
+              onClick={onConfirm}
+              disabled={pending}
+              className="fk-btn-danger fk-soft-hover min-h-9 flex-1 rounded-standard px-3 text-[13px] font-semibold disabled:opacity-60"
+            >
+              {pending ? "กำลังลบ..." : "ยืนยันลบ"}
+            </button>
+            <Popover.Close
+              disabled={pending}
+              className="min-h-9 rounded-standard border border-border bg-surface-strong px-3 text-[13px] font-semibold disabled:opacity-60"
+            >
+              ยกเลิก
+            </Popover.Close>
+          </div>
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }
 
@@ -365,24 +564,50 @@ function ViewToggle({
 
 function LockerTableRow({
   file,
+  selectMode,
+  selected,
+  onToggle,
   onOpen,
 }: {
   file: FileView;
+  selectMode: boolean;
+  selected: boolean;
+  onToggle: () => void;
   onOpen: () => void;
 }) {
   const Icon = FILE_KIND_ICON[file.kind];
+  const activate = selectMode ? onToggle : onOpen;
   return (
     <tr
       tabIndex={0}
-      onClick={onOpen}
+      onClick={activate}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          onOpen();
+          activate();
         }
       }}
-      className="cursor-pointer outline-none transition-colors hover:bg-surface-muted/60 focus-visible:bg-surface-muted/60 [&>td]:border-b [&>td]:border-border/60"
+      aria-selected={selectMode ? selected : undefined}
+      className={[
+        "cursor-pointer outline-none transition-colors hover:bg-surface-muted/60 focus-visible:bg-surface-muted/60 [&>td]:border-b [&>td]:border-border/60",
+        selected ? "bg-primary-soft/60" : "",
+      ].join(" ")}
     >
+      {selectMode ? (
+        <td className="pl-1">
+          <span
+            aria-hidden
+            className={[
+              "flex size-5 items-center justify-center rounded-md border",
+              selected
+                ? "border-primary bg-primary text-white"
+                : "border-border bg-surface",
+            ].join(" ")}
+          >
+            {selected ? <Check size={13} weight="bold" /> : null}
+          </span>
+        </td>
+      ) : null}
       <td className="px-2 py-3.5">
         <div className="flex items-center gap-3">
           <ClayTile tone={FILE_KIND_CLAY[file.kind]} size={38} radius={13}>
@@ -406,12 +631,14 @@ function LockerTableRow({
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
-        <InlineDeleteButton
-          itemLabel={file.name}
-          question="ลบไฟล์นี้?"
-          successMessage="ลบไฟล์แล้ว"
-          onConfirm={() => deleteFileAction(file.id)}
-        />
+        {selectMode ? null : (
+          <InlineDeleteButton
+            itemLabel={file.name}
+            question="ลบไฟล์นี้?"
+            successMessage="ลบไฟล์แล้ว"
+            onConfirm={() => deleteFileAction(file.id)}
+          />
+        )}
       </td>
     </tr>
   );
