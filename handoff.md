@@ -62,14 +62,21 @@ Verified: `deno check` (isolated copy, `--node-modules-dir=auto` in scratchpad
 only — never the repo root) passes for both entrypoints + line-flex; app
 `tsc` + `lint` clean.
 
-NOT yet done — user must run:
-```
-! npx supabase functions deploy line-webhook --project-ref zuoejigurotylrcisycw --no-verify-jwt
-! npx supabase functions deploy line-worker  --project-ref zuoejigurotylrcisycw --no-verify-jwt
-```
-And confirm `APP_PUBLIC_URL` is set as an Edge Function secret (needed for the
-buttons; without it bubbles still send, just no button). Then test in LINE:
-send an image 1:1, `#งาน`, `#ชื่อไฟล์ ...`, and wait for a reminder.
+DEPLOYED + tested working 2026-09-07: `line-webhook` v12, `line-worker` v10.
+Image save / task-created / rename bubbles confirmed rendering in LINE with
+buttons (`APP_PUBLIC_URL` secret was already set). Reminder push bubble not yet
+seen live (waits for a real due time).
+
+Deploy gotcha found: `supabase functions deploy` does NOT upload
+`supabase/functions/deno.json`, so a bare `@supabase/supabase-js` specifier
+fails to bundle (`Relative import path ... not prefixed`). Fix: both LINE
+functions now `import { createClient } from "npm:@supabase/supabase-js@2"`
+directly, like `file-upload` / `file-rename`. `file-download` / `file-delete`
+still use the bare specifier + import map — migrate them the same way before
+their next redeploy.
+
+Follow-up: `renamedFileFlex` icon now derived from the filename extension
+(`kindFromName` in `line-flex.ts`) instead of a hardcoded 📄.
 
 ### Session 2d (2026-09-07) — OCR removed entirely
 
