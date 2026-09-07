@@ -32,6 +32,44 @@ const KIND_LABEL: Record<FileKind, string> = {
   other: "ไฟล์",
 };
 
+const IMAGE_EXT = new Set([
+  "jpg",
+  "jpeg",
+  "png",
+  "gif",
+  "webp",
+  "heic",
+  "heif",
+  "bmp",
+  "tif",
+  "tiff",
+]);
+const DOC_EXT = new Set([
+  "doc",
+  "docx",
+  "xls",
+  "xlsx",
+  "ppt",
+  "pptx",
+  "txt",
+  "csv",
+  "rtf",
+  "odt",
+  "ods",
+  "odp",
+]);
+
+/** Best-effort FileKind from a filename's extension (for paths where we only
+ *  have the name, e.g. rename). */
+function kindFromName(name: string): FileKind {
+  const dot = name.lastIndexOf(".");
+  const ext = dot >= 0 ? name.slice(dot + 1).toLowerCase() : "";
+  if (IMAGE_EXT.has(ext)) return "image";
+  if (ext === "pdf") return "pdf";
+  if (DOC_EXT.has(ext)) return "doc";
+  return "other";
+}
+
 const BKK = "Asia/Bangkok";
 
 function fmtSize(bytes: number): string {
@@ -229,7 +267,7 @@ export function renamedFileFlex(
     `เปลี่ยนชื่อไฟล์เป็น ${name} แล้ว`,
     bubble({
       header: header("เปลี่ยนชื่อไฟล์แล้ว", T.done),
-      body: body([fileLine("📄", name)]),
+      body: body([fileLine(KIND_ICON[kindFromName(name)], name)]),
       footer: linkFooter("เปิดในล็อคเกอร์", link, T.done.ink),
     }),
   );
