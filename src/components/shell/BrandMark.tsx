@@ -4,15 +4,21 @@ interface BrandMarkProps {
 }
 
 /**
- * FamKeep logo lockup: a small claymorphic warm tile + wordmark.
+ * FamKeep logo lockup: the app icon + wordmark.
  */
 export function BrandMark({ size = 17 }: BrandMarkProps) {
+  const mark = size + 9;
   return (
     <span className="inline-flex items-center gap-2 text-text">
-      <span
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/brand/famkeep-logo.jpg"
+        alt=""
         aria-hidden
-        className="bg-warm-gradient rounded-[11px] shadow-[0_8px_18px_-4px_rgba(120,86,54,0.4),inset_0_2px_3px_rgba(255,255,255,0.9),inset_0_-4px_8px_rgba(150,100,50,0.25)]"
-        style={{ width: 24, height: 24 }}
+        width={mark}
+        height={mark}
+        className="rounded-[8px] shadow-soft ring-1 ring-black/5"
+        style={{ width: mark, height: mark }}
       />
       <span className="font-bold tracking-tight" style={{ fontSize: size + 1 }}>
         FamKeep

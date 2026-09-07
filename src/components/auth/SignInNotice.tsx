@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { SignIn } from "@phosphor-icons/react/dist/ssr";
 
 /** Shown on authenticated screens when the visitor is not a signed-in FamKeep user. */
 export function SignInNotice({
@@ -11,9 +10,14 @@ export function SignInNotice({
 }) {
   return (
     <div className="mx-auto flex max-w-md flex-col items-center gap-4 py-14 text-center">
-      <span className="fk-clay flex size-16 items-center justify-center rounded-card text-brand-coral">
-        <SignIn size={28} weight="duotone" />
-      </span>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/brand/famkeep-logo.jpg"
+        alt="FamKeep"
+        width={64}
+        height={64}
+        className="size-16 rounded-[16px] shadow-soft ring-1 ring-black/5"
+      />
       <h1 className="text-[24px] font-semibold">{title}</h1>
       {reason === "unconfigured" ? (
         <p className="text-sm text-text-2">
