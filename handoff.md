@@ -28,6 +28,29 @@ https://github.com/oomsin2008/famkeep
 
 ## Current User Request / State
 
+### Session 2g (2026-09-07) — Settings: owner-only data reset
+
+New `/settings/reset` ("ล้างข้อมูล", in the sidebar + drilldown + back-header).
+Family-owner only (`is_family_owner()` = holds the `owner` role in a family
+workspace); a non-owner sees an explanatory card.
+
+- 3 typed-confirm actions (`DangerConfirmDialog`, reusable): ล้างคลังไฟล์
+  (phrase "ล้างไฟล์"), ล้างงานและปฏิทิน ("ล้างงาน"), เริ่มใหม่ทั้งหมด
+  ("เริ่มใหม่ทั้งหมด"). Each covers the caller's private + family workspaces.
+- `src/lib/settings/reset-actions.ts`: `wipeFilesAction` loops the
+  `file-delete` Edge Function (soft-delete + moves the Drive original to the
+  cleanup folder); `wipeTasksAction` → `owner_wipe_tasks()` RPC;
+  `resetAllAction` = both. Every action re-checks `is_family_owner`.
+- migration `20260907180000`: `is_family_owner()` + `owner_wipe_tasks()`,
+  SECURITY DEFINER, `authenticated` only, owner-gated. Applied via MCP.
+- Calendar has no data of its own (renders tasks) → clearing tasks clears it.
+- Other members' private lockers are never touched (RLS scope). LINE
+  connection + family membership are left intact.
+
+tsc / lint / test / build pass. Committed `cd721fe`, pushed. No deploy needed.
+NOT tested end-to-end (would wipe the real 11 files / 7 tasks) — the owner gate
+and the wipe targeting (7 tasks / 11 files) were verified read-only.
+
 ### Session 2f (2026-09-07) — Settings: real profile + edit display name
 
 `GeneralSection` was the last mock-data component. Now:
