@@ -100,5 +100,8 @@ export function getDetailScreen(pathname: string): DetailScreen | null {
   if (pathname === "/settings/notifications") {
     return { title: "การแจ้งเตือน", backHref: "/settings" };
   }
+  if (pathname === "/settings/reset") {
+    return { title: "ล้างข้อมูล", backHref: "/settings" };
+  }
   return null;
 }

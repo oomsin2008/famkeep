@@ -8,6 +8,7 @@ const SECTIONS = [
   { href: "/settings/family", label: "ครอบครัว" },
   { href: "/settings/line", label: "การเชื่อมต่อ LINE" },
   { href: "/settings/notifications", label: "การแจ้งเตือน" },
+  { href: "/settings/reset", label: "ล้างข้อมูล" },
 ] as const;
 
 /** Desktop-only section nav for /settings and its sub-routes. Mobile uses the drill-down list instead. */

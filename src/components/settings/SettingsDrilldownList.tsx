@@ -1,7 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, CaretRight, ChatCircleDots, UsersThree, type Icon } from "@phosphor-icons/react";
+import {
+  Bell,
+  Broom,
+  CaretRight,
+  ChatCircleDots,
+  UsersThree,
+  type Icon,
+} from "@phosphor-icons/react";
 
 interface Row {
   href: string;
@@ -13,6 +20,7 @@ const ROWS: readonly Row[] = [
   { href: "/settings/family", label: "ครอบครัว", Icon: UsersThree },
   { href: "/settings/line", label: "การเชื่อมต่อ LINE", Icon: ChatCircleDots },
   { href: "/settings/notifications", label: "การแจ้งเตือน", Icon: Bell },
+  { href: "/settings/reset", label: "ล้างข้อมูล", Icon: Broom },
 ];
 
 /** Mobile-only drill-down menu on the /settings root; desktop uses SettingsSidebar instead. */
