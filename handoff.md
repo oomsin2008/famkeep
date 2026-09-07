@@ -28,6 +28,49 @@ https://github.com/oomsin2008/famkeep
 
 ## Current User Request / State
 
+### Session 2e (2026-09-07) — LINE messages: Flex bubbles + warmer tone (A2 + B2)
+
+User picked option "A2 + B2" from a mockup (artifact
+`747d6612-60f9-484b-81e1-10e069ce8892`): confirmation messages become LINE Flex
+bubbles with a tinted header + one deep-link button; error/hint messages stay
+plain text but reworded warmer. No mascot, no "เสร็จแล้ว"-from-LINE button, no
+multi-file batching.
+
+Changed:
+- **`supabase/functions/_shared/line.ts`** — added `LineFlexMessage`
+  (`type:"flex"`, `altText`, `contents`) and `LineMessage` union;
+  `replyMessage` / `pushMessage` now take `LineMessage[]`.
+- **`supabase/functions/_shared/line-flex.ts`** (new) — bubble builders:
+  `savedFileFlex`, `duplicateFileFlex`, `renamedFileFlex`, `taskCreatedFlex`,
+  `reminderFlex`. Colors mirror the app tokens. Header uses a light tint +
+  dark ink (not the solid-red bars from the user's reference image). Every
+  builder returns a bubble with `altText`; `link: null` (no `APP_PUBLIC_URL`)
+  just drops the footer button.
+- **`line-webhook/index.ts`** — file-save / duplicate / rename / task-created
+  replies now return Flex. `tryReply`/`replyWith` accept `string | LineMessage`.
+  Added `taskLink()`. `formatDue()` now `"อ. 16 ก.ย. 2569 · 10:00"`.
+  Reworded `HINT_*`, `MSG_*`, `KEEP_HINT`, `reasonToThai`, inline error strings.
+- **`line-worker/index.ts`** — reminder push is now `reminderFlex`; preset
+  labels reworded ("อีก 10 นาทีถึงกำหนด" etc.); `at_due_time` → red tone, others
+  → amber. Reads `APP_PUBLIC_URL` for the "เปิดงานนี้" button.
+- **Migration `20260907160000_reminder_dispatch_task_id.sql`** (applied via MCP)
+  — `reminder_dispatch_info` dropped + recreated with a trailing `task_id uuid`
+  column so the reminder bubble can deep-link. Grants re-locked to
+  `service_role` only.
+
+Verified: `deno check` (isolated copy, `--node-modules-dir=auto` in scratchpad
+only — never the repo root) passes for both entrypoints + line-flex; app
+`tsc` + `lint` clean.
+
+NOT yet done — user must run:
+```
+! npx supabase functions deploy line-webhook --project-ref zuoejigurotylrcisycw --no-verify-jwt
+! npx supabase functions deploy line-worker  --project-ref zuoejigurotylrcisycw --no-verify-jwt
+```
+And confirm `APP_PUBLIC_URL` is set as an Edge Function secret (needed for the
+buttons; without it bubbles still send, just no button). Then test in LINE:
+send an image 1:1, `#งาน`, `#ชื่อไฟล์ ...`, and wait for a reminder.
+
 ### Session 2d (2026-09-07) — OCR removed entirely
 
 The user decided on-device OCR is not fit for use ("ยังไม่เหมาะกับการใช้งาน")

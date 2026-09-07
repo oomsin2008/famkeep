@@ -3,12 +3,14 @@
 // Invoked ~every minute by the `famkeep-drain-jobs` cron job.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "@supabase/supabase-js";
-import { pushMessage, textMessage } from "../_shared/line.ts";
+import { type LineFlexMessage, pushMessage } from "../_shared/line.ts";
+import { reminderFlex } from "../_shared/line-flex.ts";
 
 const WORKER_SECRET = Deno.env.get("WORKER_SHARED_SECRET") ?? "";
 const ACCESS_TOKEN = Deno.env.get("LINE_CHANNEL_ACCESS_TOKEN") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const APP_PUBLIC_URL = (Deno.env.get("APP_PUBLIC_URL") ?? "").replace(/\/+$/, "");
 const BATCH = 10;
 
 const admin = createClient(SUPABASE_URL, SERVICE_KEY, {
@@ -17,9 +19,9 @@ const admin = createClient(SUPABASE_URL, SERVICE_KEY, {
 
 const PRESET_LABEL: Record<string, string> = {
   at_due_time: "ถึงกำหนดแล้ว",
-  ten_minutes_before: "อีก 10 นาทีครบกำหนด",
-  one_day_before: "พรุ่งนี้ครบกำหนด",
-  morning_of_due: "วันนี้ครบกำหนด",
+  ten_minutes_before: "อีก 10 นาทีถึงกำหนด",
+  one_day_before: "พรุ่งนี้ถึงกำหนด",
+  morning_of_due: "วันนี้ถึงกำหนด",
 };
 
 function json(body: unknown, status = 200) {
@@ -40,6 +42,7 @@ interface DispatchInfo {
   task_title: string | null;
   due_at: string | null;
   preset: string | null;
+  task_id: string | null;
 }
 
 Deno.serve(async (req) => {
@@ -84,9 +87,8 @@ Deno.serve(async (req) => {
       continue;
     }
 
-    const message = buildMessage(info);
     const res = await pushMessage(ACCESS_TOKEN, info.line_target!, [
-      textMessage(message),
+      buildMessage(info),
     ]);
 
     if (res.ok) {
@@ -109,17 +111,39 @@ Deno.serve(async (req) => {
   return json({ claimed: (jobs as Job[])?.length ?? 0, sent, failed });
 });
 
-function buildMessage(info: DispatchInfo): string {
-  const when = info.due_at
-    ? new Intl.DateTimeFormat("th-TH-u-ca-buddhist", {
-        timeZone: "Asia/Bangkok",
-        day: "numeric",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-        hourCycle: "h23",
-      }).format(new Date(info.due_at))
-    : "";
-  const lead = PRESET_LABEL[info.preset ?? ""] ?? "เตือนงาน";
-  return `⏰ ${lead}\n${info.task_title ?? "งาน"}${when ? `\nกำหนด ${when}` : ""}`;
+function buildMessage(info: DispatchInfo): LineFlexMessage {
+  const dueLabel = info.due_at ? formatDue(info.due_at) : null;
+  const headLabel = PRESET_LABEL[info.preset ?? ""] ?? "เตือนงาน";
+  const tone: "overdue" | "duesoon" = info.preset === "at_due_time"
+    ? "overdue"
+    : "duesoon";
+  const link = APP_PUBLIC_URL && info.task_id
+    ? `${APP_PUBLIC_URL}/tasks/${info.task_id}`
+    : null;
+  return reminderFlex({
+    title: info.task_title ?? "งาน",
+    dueLabel,
+    headLabel,
+    tone,
+    link,
+  });
+}
+
+/** e.g. "อ. 16 ก.ย. 2569 · 10:00" (Bangkok, Buddhist Era). */
+function formatDue(iso: string): string {
+  const d = new Date(iso);
+  const date = new Intl.DateTimeFormat("th-TH-u-ca-buddhist", {
+    timeZone: "Asia/Bangkok",
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(d);
+  const time = new Intl.DateTimeFormat("th-TH", {
+    timeZone: "Asia/Bangkok",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(d);
+  return `${date} · ${time}`;
 }

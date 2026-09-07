@@ -44,6 +44,16 @@ export interface LineTextMessage {
   text: string;
 }
 
+/** A Flex Message. `contents` is a LINE bubble/carousel object. `altText` is
+ *  shown in the notification and on clients that cannot render Flex. */
+export interface LineFlexMessage {
+  type: "flex";
+  altText: string;
+  contents: Record<string, unknown>;
+}
+
+export type LineMessage = LineTextMessage | LineFlexMessage;
+
 export function textMessage(text: string): LineTextMessage {
   // LINE hard limit is 5000 chars per text message.
   return { type: "text", text: text.slice(0, 4900) };
@@ -70,7 +80,7 @@ async function lineFetch(
 export function replyMessage(
   accessToken: string,
   replyToken: string,
-  messages: LineTextMessage[],
+  messages: LineMessage[],
 ) {
   return lineFetch("/message/reply", accessToken, {
     method: "POST",
@@ -82,7 +92,7 @@ export function replyMessage(
 export function pushMessage(
   accessToken: string,
   to: string,
-  messages: LineTextMessage[],
+  messages: LineMessage[],
 ) {
   return lineFetch("/message/push", accessToken, {
     method: "POST",

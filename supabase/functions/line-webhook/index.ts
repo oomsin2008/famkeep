@@ -16,12 +16,19 @@ import { createClient } from "@supabase/supabase-js";
 import {
   fetchLineContent,
   getGroupName,
+  type LineMessage,
   type LineWebhookBody,
   type LineWebhookEvent,
   replyMessage,
   textMessage,
   verifyLineSignature,
 } from "../_shared/line.ts";
+import {
+  duplicateFileFlex,
+  renamedFileFlex,
+  savedFileFlex,
+  taskCreatedFlex,
+} from "../_shared/line-flex.ts";
 import {
   classifyAssignee,
   defaultDueIso,
@@ -53,18 +60,9 @@ function fileLink(fileId: string | null | undefined): string | null {
   return `${APP_PUBLIC_URL}/locker/files/${fileId}`;
 }
 
-/** Save-confirmation reply. `kind` is the FileKind. */
-function savedReply(
-  kind: string,
-  name: string,
-  fileId: string | null | undefined,
-): string {
-  const head = kind === "image" ? "🖼️ เซฟรูปแล้ว" : "📄 เซฟไฟล์แล้ว";
-  const renameHint = "\n\nหากต้องการเปลี่ยนชื่อ ส่ง: #ชื่อไฟล์ <ชื่อใหม่>";
-  const link = fileLink(fileId);
-  return link
-    ? `${head}\n${name}\n\n🔗 เปิดใน FamKeep:\n${link}${renameHint}`
-    : `${head}\n${name}${renameHint}`;
+function taskLink(taskId: string | null | undefined): string | null {
+  if (!APP_PUBLIC_URL || !taskId) return null;
+  return `${APP_PUBLIC_URL}/tasks/${taskId}`;
 }
 
 const admin = createClient(SUPABASE_URL, SERVICE_KEY, {
@@ -72,21 +70,21 @@ const admin = createClient(SUPABASE_URL, SERVICE_KEY, {
 });
 
 const HINT_USAGE =
-  "รูปแบบ: #งาน <ชื่องาน>\nกำหนด: 15/09/2026 18:00 (ไม่บังคับ)\nผู้รับผิดชอบ: <ชื่อสมาชิก | ฉัน> (เฉพาะครอบครัว)";
+  "วิธีสร้างงาน:\n#งาน ชื่องาน\nกำหนด: 15/09/2026 18:00 (ไม่บังคับ)\nผู้รับผิดชอบ: ชื่อสมาชิก หรือ ฉัน (เฉพาะครอบครัว)";
 const HINT_NOT_LINKED =
-  "ยังไม่ได้เชื่อมบัญชี FamKeep เข้าสู่ระบบด้วย LINE ที่แอป FamKeep ก่อน แล้วส่งอีกครั้ง";
+  "ยังไม่ได้เชื่อมบัญชี FamKeep — เปิดแอป FamKeep แล้วเข้าสู่ระบบด้วย LINE ก่อน จากนั้นส่งอีกครั้ง";
 const HINT_GROUP_PENDING =
-  "กลุ่มนี้ยังไม่ได้อนุมัติ ให้เจ้าของครอบครัวอนุมัติที่ FamKeep > ตั้งค่า > การเชื่อมต่อ LINE";
+  "กลุ่มนี้ยังไม่ได้เปิดใช้งาน ให้เจ้าของครอบครัวอนุมัติที่ FamKeep › ตั้งค่า › การเชื่อมต่อ LINE";
 const MSG_DRIVE_UNAVAILABLE =
-  "ระบบจัดเก็บไฟล์ยังไม่พร้อมใช้งาน กรุณาลองใหม่ภายหลัง";
+  "ยังบันทึกไฟล์ไม่ได้ในตอนนี้ ลองส่งไฟล์นั้นอีกครั้งในภายหลัง";
 const MSG_DRIVE_REAUTH =
-  "ระบบจัดเก็บไฟล์ต้องต่ออายุการเชื่อมต่อ Google กรุณาแจ้งผู้ดูแล";
-const MSG_SAVE_FAILED = "บันทึกไฟล์ไม่สำเร็จ กรุณาส่งใหม่อีกครั้ง";
-const MSG_TOO_BIG = "ไฟล์ใหญ่เกินไป (จำกัด 5 MB สำหรับการบันทึกจาก LINE)";
+  "การเชื่อมต่อ Google Drive หมดอายุ รบกวนแจ้งเจ้าของครอบครัวให้เชื่อมต่อใหม่";
+const MSG_SAVE_FAILED = "บันทึกไฟล์ไม่สำเร็จ รบกวนส่งไฟล์นั้นอีกครั้ง";
+const MSG_TOO_BIG = "ไฟล์นี้ใหญ่เกินไป — ส่งผ่าน LINE ได้ไม่เกิน 5 MB";
 const MSG_CONTENT_GONE =
-  "ไม่สามารถดึงไฟล์จาก LINE ได้ (อาจหมดอายุแล้ว) กรุณาส่งใหม่";
+  "ดึงไฟล์จาก LINE ไม่ทัน (ไฟล์อาจหมดอายุ) รบกวนส่งอีกครั้ง";
 const KEEP_HINT =
-  "รับรูปแล้ว หากต้องการเก็บเข้าคลังครอบครัว ให้ตอบกลับรูปนั้นว่า #เก็บ";
+  "ได้รับรูปแล้ว ถ้าต้องการเก็บเข้าคลังครอบครัว ให้ตอบกลับรูปนั้นว่า  #เก็บ";
 
 const KEEP_EXACT = new Set(["#เก็บ", "เก็บรูปนี้"]);
 const RENAME_PREFIXES = ["#ชื่อไฟล์", "#เปลี่ยนชื่อ"];
@@ -143,14 +141,24 @@ async function markProcessed(eventId: string, status: "done" | "error") {
   });
 }
 
-function replyWith(event: LineWebhookEvent, msg: string): Promise<unknown> {
+function toMessage(msg: string | LineMessage): LineMessage {
+  return typeof msg === "string" ? textMessage(msg) : msg;
+}
+
+function replyWith(
+  event: LineWebhookEvent,
+  msg: string | LineMessage,
+): Promise<unknown> {
   return event.replyToken
-    ? replyMessage(ACCESS_TOKEN, event.replyToken, [textMessage(msg)])
+    ? replyMessage(ACCESS_TOKEN, event.replyToken, [toMessage(msg)])
     : Promise.resolve();
 }
 
 /** Reply without letting a dead/expired reply token break the caller. */
-async function tryReply(event: LineWebhookEvent, msg: string): Promise<void> {
+async function tryReply(
+  event: LineWebhookEvent,
+  msg: string | LineMessage,
+): Promise<void> {
   try {
     await replyWith(event, msg);
   } catch (err) {
@@ -183,7 +191,7 @@ async function handleEvent(event: LineWebhookEvent): Promise<void> {
       });
       await replyWith(
         event,
-        "เพิ่ม FamKeep เข้ากลุ่มแล้ว ให้เจ้าของครอบครัวอนุมัติกลุ่มนี้ที่ FamKeep > ตั้งค่า > การเชื่อมต่อ LINE",
+        "เพิ่ม FamKeep เข้ากลุ่มแล้ว ให้เจ้าของครอบครัวอนุมัติกลุ่มนี้ที่ FamKeep › ตั้งค่า › การเชื่อมต่อ LINE",
       );
     } else if (event.type === "message" && m) {
       if (m.type === "text" && typeof m.text === "string") {
@@ -207,7 +215,7 @@ async function handleEvent(event: LineWebhookEvent): Promise<void> {
       ) {
         await replyWith(
           event,
-          "ยังไม่รองรับไฟล์ประเภทนี้ รองรับรูปภาพและเอกสาร",
+          "ยังไม่รองรับไฟล์ประเภทนี้ ตอนนี้เก็บได้เฉพาะรูปภาพและเอกสาร",
         );
       }
     }
@@ -232,16 +240,16 @@ async function handleRenameRecentFile(
   rawName: string,
 ): Promise<void> {
   let status: "done" | "error" = "done";
-  let replyMsg = "";
+  let replyMsg: string | LineMessage = "";
 
   try {
     if (!rawName.trim()) {
-      replyMsg = "รูปแบบ: #ชื่อไฟล์ <ชื่อใหม่>";
+      replyMsg = "พิมพ์แบบนี้:  #ชื่อไฟล์ ชื่อใหม่ของไฟล์";
     } else {
       const source = event.source;
       const lineUserId = source?.userId ?? null;
       if (!lineUserId) {
-        replyMsg = "ไม่ทราบผู้ส่ง กรุณาเพิ่ม FamKeep เป็นเพื่อนใน LINE ก่อน";
+        replyMsg = "ไม่ทราบว่าใครส่ง รบกวนเพิ่ม FamKeep เป็นเพื่อนใน LINE ก่อน";
       } else {
         const { data: reg } = await admin.rpc("register_line_user_conversation", {
           p_line_user_id: lineUserId,
@@ -256,19 +264,19 @@ async function handleRenameRecentFile(
           );
           if (lookupErr) {
             console.error("latest_file_for_line_rename error", lookupErr.message);
-            replyMsg = "เปลี่ยนชื่อไฟล์ไม่สำเร็จ กรุณาลองใหม่";
+            replyMsg = "เปลี่ยนชื่อไฟล์ไม่สำเร็จ รบกวนลองอีกครั้ง";
             status = "error";
           } else {
             const row = firstRow(latest);
             if (!row?.file_id || !row.name || !row.drive_file_id) {
-              replyMsg = "ไม่พบไฟล์ล่าสุดที่จะเปลี่ยนชื่อ";
+              replyMsg = "ไม่พบไฟล์ล่าสุดที่จะเปลี่ยนชื่อ ส่งไฟล์เข้ามาก่อนแล้วค่อยเปลี่ยนชื่อ";
             } else {
               const newName = renamePreservingExtension(rawName, row.name);
               const renamed = await renameDriveFile(row.drive_file_id, newName);
               if (!renamed.ok) {
                 replyMsg = renamed.reason === "invalid_grant"
                   ? MSG_DRIVE_REAUTH
-                  : "เปลี่ยนชื่อไฟล์ใน Drive ไม่สำเร็จ กรุณาลองใหม่";
+                  : "เปลี่ยนชื่อไฟล์ไม่สำเร็จ รบกวนลองอีกครั้ง";
                 status = "error";
               } else {
                 const { data: saved, error: saveErr } = await admin.rpc(
@@ -285,10 +293,10 @@ async function handleRenameRecentFile(
                     "rename_file_metadata_from_line error",
                     saveErr?.message ?? savedRow?.blocked_reason,
                   );
-                  replyMsg = "เปลี่ยนชื่อไฟล์ไม่สำเร็จ กรุณาลองใหม่";
+                  replyMsg = "เปลี่ยนชื่อไฟล์ไม่สำเร็จ รบกวนลองอีกครั้ง";
                   status = "error";
                 } else {
-                  replyMsg = `เปลี่ยนชื่อไฟล์แล้ว\n${newName}`;
+                  replyMsg = renamedFileFlex(newName, fileLink(row.file_id));
                 }
               }
             }
@@ -298,7 +306,7 @@ async function handleRenameRecentFile(
     }
   } catch (err) {
     console.error("rename recent file failed", (err as Error).message);
-    replyMsg = "เปลี่ยนชื่อไฟล์ไม่สำเร็จ กรุณาลองใหม่";
+    replyMsg = "เปลี่ยนชื่อไฟล์ไม่สำเร็จ รบกวนลองอีกครั้ง";
     status = "error";
   }
 
@@ -316,7 +324,7 @@ async function handleTextMessage(
   const source = event.source;
 
   if (!parsed.ok && parsed.reason === "no_trigger") return; // not for us
-  const reply = (msg: string) => replyWith(event, msg);
+  const reply = (msg: string | LineMessage) => replyWith(event, msg);
 
   if (!parsed.ok) {
     await reply(HINT_USAGE);
@@ -343,7 +351,7 @@ async function handleTextMessage(
     workspaceId = firstRow(resolved)?.private_workspace_id ?? null;
   } else if (source?.type === "group" && source.groupId) {
     if (!source.userId) {
-      await reply("ไม่ทราบผู้ส่ง กรุณาเพิ่ม FamKeep เป็นเพื่อนใน LINE ก่อน แล้วลองใหม่");
+      await reply("ไม่ทราบว่าใครส่ง รบกวนเพิ่ม FamKeep เป็นเพื่อนใน LINE ก่อน แล้วลองอีกครั้ง");
       return;
     }
     const { data: grp } = await admin.rpc("resolve_line_group", {
@@ -383,17 +391,19 @@ async function handleTextMessage(
   const due = parseThaiDue(parsed.dueRaw, new Date());
   if (due.error) {
     await reply(
-      "อ่านวันที่ไม่เข้าใจ ลองรูปแบบ: กำหนด: 15/09/2026 18:00 หรือ พรุ่งนี้ 09:00",
+      "อ่านวันที่ไม่ออก ลองแบบนี้: 15/09/2026 18:00 หรือ พรุ่งนี้ 09:00",
     );
     return;
   }
   const dueIso = due.iso ?? defaultDueIso(new Date());
 
   let assigneeProfileId: string | null = null;
+  let assigneeName: string | null = null;
   if (isFamily) {
     const intent = classifyAssignee(parsed.assigneeRaw);
     if (intent.kind === "self") {
       assigneeProfileId = actorProfileId;
+      assigneeName = "ตัวเอง";
     } else if (intent.kind === "name") {
       const { data: resolved } = await admin.rpc(
         "resolve_family_member_by_name",
@@ -404,6 +414,7 @@ async function handleTextMessage(
         return;
       }
       assigneeProfileId = resolved as string;
+      assigneeName = intent.value;
     }
   }
 
@@ -416,7 +427,7 @@ async function handleTextMessage(
     p_due_at: dueIso,
   });
   if (error) {
-    await reply("สร้างงานไม่สำเร็จ กรุณาลองใหม่");
+    await reply("สร้างงานไม่สำเร็จ รบกวนลองอีกครั้ง");
     return;
   }
   const crow = firstRow(created);
@@ -425,7 +436,15 @@ async function handleTextMessage(
     return;
   }
 
-  await reply(`สร้างงานแล้ว: ${parsed.title}\nกำหนด ${formatDue(dueIso)}`);
+  await reply(
+    taskCreatedFlex({
+      title: parsed.title,
+      dueLabel: formatDue(dueIso),
+      assigneeName,
+      context: isFamily ? "family" : "private",
+      link: taskLink(crow?.task_id),
+    }),
+  );
 }
 
 // ---- media ingestion -------------------------------------------------------
@@ -466,7 +485,7 @@ async function resolveMediaTarget(
 
   if (source?.type === "group" && source.groupId) {
     if (!source.userId) {
-      return { reply: "ไม่ทราบผู้ส่ง กรุณาเพิ่ม FamKeep เป็นเพื่อนใน LINE ก่อน" };
+      return { reply: "ไม่ทราบว่าใครส่ง รบกวนเพิ่ม FamKeep เป็นเพื่อนใน LINE ก่อน" };
     }
     const { data: grp } = await admin.rpc("resolve_line_group", {
       p_group_id: source.groupId,
@@ -509,7 +528,7 @@ async function handleMediaIngest(
   }
 
   let status: "done" | "error" = "done";
-  let replyMsg: string | null = null;
+  let replyMsg: string | LineMessage | null = null;
   try {
     const { target, reply: blockMsg } = await resolveMediaTarget(event);
     if (!target) {
@@ -552,11 +571,11 @@ async function handleKeepImage(
 ): Promise<void> {
   const source = event.source;
   let status: "done" | "error" = "done";
-  let replyMsg: string | null = null;
+  let replyMsg: string | LineMessage | null = null;
 
   try {
     if (source?.type !== "group" || !source.groupId) {
-      replyMsg = "คำสั่ง #เก็บ ใช้ในกลุ่มครอบครัว ตอบกลับรูปที่ต้องการเก็บ";
+      replyMsg = "คำสั่ง #เก็บ ใช้ในกลุ่มครอบครัว โดยตอบกลับที่รูปที่ต้องการเก็บ";
     } else {
       const { target, reply: blockMsg } = await resolveMediaTarget(event);
       if (!target) {
@@ -571,7 +590,7 @@ async function handleKeepImage(
         });
         const imageMsgId = firstRow(res)?.line_message_id ?? null;
         if (!imageMsgId) {
-          replyMsg = "ไม่พบรูปที่จะเก็บ ส่งรูปในกลุ่มแล้วตอบกลับรูปนั้นว่า #เก็บ";
+          replyMsg = "ไม่พบรูปที่จะเก็บ ส่งรูปในกลุ่มแล้วตอบกลับที่รูปนั้นว่า  #เก็บ";
         } else {
           const saved = await saveMediaToLocker(event, target, imageMsgId, {
             msgType: "image",
@@ -600,7 +619,7 @@ async function handleKeepImage(
 
 interface SaveResult {
   ok: boolean;
-  reply?: string;
+  reply?: string | LineMessage;
 }
 
 /** Download LINE content, upload to Drive, persist metadata. */
@@ -615,12 +634,9 @@ async function saveMediaToLocker(
     p_line_message_id: lineMessageId,
   });
   if (existing) {
-    const link = fileLink(existing as string);
     return {
       ok: true,
-      reply: link
-        ? `ไฟล์นี้บันทึกไว้แล้ว\n\n🔗 เปิดใน FamKeep:\n${link}`
-        : "ไฟล์นี้บันทึกไว้แล้ว",
+      reply: duplicateFileFlex(fileLink(existing as string)),
     };
   }
 
@@ -673,7 +689,17 @@ async function saveMediaToLocker(
     return { ok: false, reply: MSG_SAVE_FAILED };
   }
 
-  return { ok: true, reply: savedReply(kind, name, row?.file_id) };
+  return {
+    ok: true,
+    reply: savedFileFlex({
+      kind,
+      name,
+      sizeBytes: content.bytes.length,
+      tsMs: opts.tsMs,
+      context: target.kind,
+      link: fileLink(row?.file_id),
+    }),
+  };
 }
 
 // ---- helpers --------------------------------------------------------------
@@ -698,25 +724,32 @@ function firstRow(data: unknown): RpcRow | null {
 function reasonToThai(reason: string): string {
   const map: Record<string, string> = {
     no_workspace_access: "คุณไม่ได้อยู่ในครอบครัวนี้",
-    assignee_not_family_member: "ผู้รับมอบหมายต้องเป็นสมาชิกในครอบครัวนี้",
-    private_assignee_not_allowed: "งานส่วนตัวมอบหมายให้ผู้อื่นไม่ได้",
-    invalid_title: "ชื่องานไม่ถูกต้อง",
-    invalid_due_at: "วันครบกำหนดไม่ถูกต้อง",
+    assignee_not_family_member: "ผู้รับผิดชอบต้องเป็นสมาชิกในครอบครัวนี้",
+    private_assignee_not_allowed: "งานของฉันมอบหมายให้คนอื่นไม่ได้",
+    invalid_title: "ชื่องานไม่ถูกต้อง ลองพิมพ์ใหม่",
+    invalid_due_at: "กำหนดวันไม่ถูกต้อง ลองพิมพ์ใหม่",
     actor_unknown: HINT_NOT_LINKED,
   };
-  return map[reason] ?? "สร้างงานไม่สำเร็จ";
+  return map[reason] ?? "สร้างงานไม่สำเร็จ รบกวนลองอีกครั้ง";
 }
 
+/** e.g. "อ. 16 ก.ย. 2569 · 10:00" (Bangkok, Buddhist Era). */
 function formatDue(iso: string): string {
-  return new Intl.DateTimeFormat("th-TH-u-ca-buddhist", {
+  const d = new Date(iso);
+  const date = new Intl.DateTimeFormat("th-TH-u-ca-buddhist", {
     timeZone: "Asia/Bangkok",
+    weekday: "short",
     day: "numeric",
     month: "short",
     year: "numeric",
+  }).format(d);
+  const time = new Intl.DateTimeFormat("th-TH", {
+    timeZone: "Asia/Bangkok",
     hour: "2-digit",
     minute: "2-digit",
     hourCycle: "h23",
-  }).format(new Date(iso));
+  }).format(d);
+  return `${date} · ${time}`;
 }
 
 /** Minimum safe payload: no tokens, no message text, no raw ids beyond flags. */
