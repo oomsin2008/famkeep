@@ -1,14 +1,17 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
-import { Trash, X } from "@phosphor-icons/react";
+import { Check, PencilSimple, Trash, X } from "@phosphor-icons/react";
 import { useFiles } from "@/components/providers/FilesProvider";
 import { useToast } from "@/components/providers/ToastProvider";
 import { WorkspacePill } from "@/components/tasks/WorkspacePill";
 import { ClayTile } from "@/components/ui/ClayTile";
 import { deleteFileAction } from "@/lib/files/file-actions";
 import { formatThaiDate } from "@/lib/datetime";
+import { createClient } from "@/lib/supabase/client";
+import { getSupabaseConfig } from "@/lib/supabase/config";
 import {
   FILE_KIND_CLAY,
   FILE_KIND_ICON,
@@ -25,17 +28,22 @@ import {
  * revalidates the lists. Closes on X, backdrop click, and Escape (Radix).
  */
 export function FileDetailModal() {
-  const { openedFile: file, closeFile } = useFiles();
+  const { openedFile: file, closeFile, renameOpenedFile } = useFiles();
   const toast = useToast();
+  const router = useRouter();
   const Icon = file ? FILE_KIND_ICON[file.kind] : null;
 
   // per-file state so switching files resets it naturally (no effect)
   const [errorFileId, setErrorFileId] = useState<string | null>(null);
   const [confirmForId, setConfirmForId] = useState<string | null>(null);
+  const [editingForId, setEditingForId] = useState<string | null>(null);
+  const [draftName, setDraftName] = useState("");
   const [deleting, startDelete] = useTransition();
+  const [renaming, startRename] = useTransition();
 
   const previewError = Boolean(file) && errorFileId === file?.id;
   const confirming = Boolean(file) && confirmForId === file?.id;
+  const editing = Boolean(file) && editingForId === file?.id;
 
   const contentUrl = (mode: "inline" | "attachment") =>
     file ? `/api/files/${file.id}/content?disposition=${mode}` : "#";
@@ -56,6 +64,90 @@ export function FileDetailModal() {
         toast.show("error", result.error ?? "ลบไฟล์ไม่สำเร็จ");
         setConfirmForId(null);
       }
+    });
+  }
+
+  function renameError(stage: string): string {
+    const map: Record<string, string> = {
+      drive_not_configured: "ระบบจัดเก็บไฟล์ยังไม่พร้อมใช้งาน",
+      drive_reauth: "ระบบจัดเก็บไฟล์ต้องต่ออายุการเชื่อมต่อ Google",
+      drive_rename_failed: "เปลี่ยนชื่อไฟล์ใน Google Drive ไม่สำเร็จ",
+      missing_drive_file: "ไฟล์นี้ไม่มีข้อมูล Google Drive ที่ใช้เปลี่ยนชื่อ",
+      not_found: "ไม่พบไฟล์นี้ หรือคุณไม่มีสิทธิ์",
+      session_invalid: "กรุณาเข้าสู่ระบบใหม่",
+      invalid_name: "ชื่อไฟล์ไม่ถูกต้อง",
+      metadata_failed: "บันทึกข้อมูลชื่อไฟล์ไม่สำเร็จ",
+    };
+    return map[stage] ?? "เปลี่ยนชื่อไฟล์ไม่สำเร็จ กรุณาลองใหม่";
+  }
+
+  function beginRename() {
+    if (!file) return;
+    setDraftName(file.name);
+    setEditingForId(file.id);
+    setConfirmForId(null);
+  }
+
+  function cancelRename() {
+    if (renaming) return;
+    setEditingForId(null);
+    setDraftName("");
+  }
+
+  function saveRename() {
+    if (!file || !draftName.trim() || renaming) return;
+    const fileId = file.id;
+    const requestedName = draftName.trim();
+    setDraftName(requestedName);
+
+    startRename(async () => {
+      const config = getSupabaseConfig();
+      if (!config) {
+        toast.show("error", "ยังไม่ได้ตั้งค่า Supabase");
+        return;
+      }
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        toast.show("error", "กรุณาเข้าสู่ระบบใหม่");
+        return;
+      }
+
+      const base = config.supabaseUrl.replace(/\/+$/, "");
+      const res = await fetch(`${base}/functions/v1/file-rename`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: config.supabasePublishableKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: fileId, name: requestedName }),
+      }).catch(() => null);
+
+      if (!res) {
+        toast.show("error", "เชื่อมต่อระบบจัดเก็บไฟล์ไม่ได้");
+        return;
+      }
+      const data = (await res.json().catch(() => ({}))) as {
+        name?: string;
+        stage?: string;
+      };
+      if (!res.ok) {
+        toast.show(
+          "error",
+          renameError(data.stage ?? res.headers.get("X-FK-Stage") ?? ""),
+        );
+        return;
+      }
+
+      const nextName = data.name ?? requestedName;
+      renameOpenedFile(fileId, nextName);
+      setDraftName(nextName);
+      setEditingForId(null);
+      toast.show("success", "เปลี่ยนชื่อไฟล์แล้ว");
+      router.refresh();
     });
   }
 
@@ -87,9 +179,54 @@ export function FileDetailModal() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <Dialog.Title className="text-base font-semibold break-words">
-                  {file.name}
-                </Dialog.Title>
+                {editing ? (
+                  <div className="flex flex-col gap-2">
+                    <Dialog.Title className="text-base font-semibold">
+                      เปลี่ยนชื่อไฟล์
+                    </Dialog.Title>
+                    <div className="flex gap-2">
+                      <input
+                        value={draftName}
+                        onChange={(e) => setDraftName(e.target.value)}
+                        disabled={renaming}
+                        className="min-h-11 min-w-0 flex-1 rounded-standard border border-border bg-surface px-3 text-sm outline-none focus:border-primary disabled:opacity-60"
+                      />
+                      <button
+                        type="button"
+                        onClick={saveRename}
+                        disabled={renaming || !draftName.trim()}
+                        aria-label="บันทึกชื่อไฟล์"
+                        className="fk-btn-primary grid size-11 place-items-center rounded-standard disabled:opacity-60"
+                      >
+                        <Check size={17} weight="bold" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={cancelRename}
+                        disabled={renaming}
+                        aria-label="ยกเลิกเปลี่ยนชื่อ"
+                        className="grid size-11 place-items-center rounded-standard border border-border bg-surface-strong disabled:opacity-60"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-2">
+                    <Dialog.Title className="min-w-0 flex-1 break-words text-base font-semibold">
+                      {file.name}
+                    </Dialog.Title>
+                    <button
+                      type="button"
+                      onClick={beginRename}
+                      disabled={deleting}
+                      aria-label="เปลี่ยนชื่อไฟล์"
+                      className="grid size-9 shrink-0 place-items-center rounded-full text-text-2 hover:bg-surface-muted/70 disabled:opacity-60"
+                    >
+                      <PencilSimple size={17} />
+                    </button>
+                  </div>
+                )}
                 <div>
                   <WorkspacePill workspace={file.workspace} />
                 </div>
@@ -156,7 +293,7 @@ export function FileDetailModal() {
                     <button
                       type="button"
                       onClick={onDelete}
-                      disabled={deleting}
+                      disabled={deleting || renaming}
                       className="fk-btn-danger fk-soft-hover min-h-11 flex-1 rounded-standard px-4 text-sm font-semibold disabled:opacity-60"
                     >
                       {deleting ? "กำลังลบ..." : "ยืนยันลบ"}
@@ -164,7 +301,7 @@ export function FileDetailModal() {
                     <button
                       type="button"
                       onClick={() => setConfirmForId(null)}
-                      disabled={deleting}
+                      disabled={deleting || renaming}
                       className="min-h-11 rounded-standard border border-border bg-surface-strong px-5 text-sm disabled:opacity-60"
                     >
                       ยกเลิก
@@ -175,6 +312,7 @@ export function FileDetailModal() {
                 <button
                   type="button"
                   onClick={() => file && setConfirmForId(file.id)}
+                  disabled={renaming}
                   className="inline-flex min-h-11 w-fit items-center gap-1.5 self-start rounded-standard px-2 text-sm font-semibold text-danger-strong"
                 >
                   <Trash size={16} />

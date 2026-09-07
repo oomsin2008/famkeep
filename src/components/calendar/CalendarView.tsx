@@ -15,6 +15,7 @@ import {
   type MonthAnchor,
 } from "@/lib/calendar";
 import type { TaskView } from "@/lib/types";
+import { CalendarSkeleton } from "@/components/ui/Skeletons";
 import { MonthGrid } from "./MonthGrid";
 import { WeekStrip } from "./WeekStrip";
 import { DayPanel } from "./DayPanel";
@@ -39,7 +40,7 @@ export function CalendarView({ tasks }: { tasks: TaskView[] }) {
   const { now } = useTasks();
 
   if (!now) {
-    return <div className="fk-card h-64 animate-pulse" />;
+    return <CalendarSkeleton />;
   }
 
   return <CalendarBody tasks={tasks} now={now} />;

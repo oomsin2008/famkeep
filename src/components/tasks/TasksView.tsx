@@ -3,9 +3,12 @@
 import Link from "next/link";
 import { Plus } from "@phosphor-icons/react";
 import { useTasks } from "@/components/providers/TasksProvider";
+import { DeleteAllDialog } from "@/components/ui/DeleteAllDialog";
+import { deleteAllMyTasksAction } from "@/lib/task-actions";
 import { deriveTaskStatus } from "@/lib/tasks";
 import type { TaskView } from "@/lib/types";
 import { ClayTile } from "@/components/ui/ClayTile";
+import { TasksSkeleton } from "@/components/ui/Skeletons";
 import { TaskFilterTabs } from "./TaskFilterTabs";
 import { TaskRow } from "./TaskRow";
 
@@ -13,7 +16,7 @@ export function TasksView({ tasks }: { tasks: TaskView[] }) {
   const { now, filter, setFilter } = useTasks();
 
   if (!now) {
-    return <div className="fk-card h-40 animate-pulse" />;
+    return <TasksSkeleton />;
   }
 
   const visible = tasks.filter(
@@ -27,23 +30,34 @@ export function TasksView({ tasks }: { tasks: TaskView[] }) {
     <div className="pb-24 md:pb-0">
       <div className="mb-5 flex items-end justify-between gap-4">
         <div>
-          <TaskFilterTabs value={filter} onChange={setFilter} />
-          <h1 className="mt-3.5 text-[26px] font-semibold md:text-[30px]">งานทั้งหมด</h1>
+          <div className="lg:hidden">
+            <TaskFilterTabs value={filter} onChange={setFilter} />
+          </div>
+          <h1 className="mt-3.5 text-[26px] font-semibold lg:mt-0 md:text-[30px]">งานทั้งหมด</h1>
           <p className="mt-1 text-[13px] text-text-2">{summary}</p>
         </div>
-        <Link
-          href="/tasks/new"
-          className="fk-btn-primary fk-soft-hover hidden shrink-0 items-center gap-1.5 rounded-standard px-4 py-2.5 text-sm font-semibold md:inline-flex"
-        >
-          <Plus size={16} weight="bold" />
-          สร้างงานใหม่
-        </Link>
+        <div className="flex shrink-0 items-center gap-2">
+          {filter === "private" ? (
+            <DeleteAllDialog
+              noun="งาน"
+              count={visible.length}
+              onConfirm={deleteAllMyTasksAction}
+            />
+          ) : null}
+          <Link
+            href="/tasks/new"
+            className="fk-btn-primary fk-soft-hover hidden items-center gap-1.5 rounded-standard px-4 py-2.5 text-sm font-semibold md:inline-flex"
+          >
+            <Plus size={16} weight="bold" />
+            สร้างงานใหม่
+          </Link>
+        </div>
       </div>
 
       {visible.length > 0 ? (
         <div className="flex flex-col gap-3">
           {visible.map((task) => (
-            <TaskRow key={task.id} task={task} now={now} from="tasks" />
+            <TaskRow key={task.id} task={task} now={now} from="tasks" deletable />
           ))}
         </div>
       ) : (

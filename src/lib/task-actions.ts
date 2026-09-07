@@ -182,3 +182,28 @@ export async function removeTaskReminderAction(
     p_preset: preset,
   });
 }
+
+/** Soft-delete one task (recoverable in the DB). */
+export async function deleteTaskAction(taskId: string): Promise<TaskActionResult> {
+  return runMutation("soft_delete_task", { p_task_id: taskId });
+}
+
+export interface BulkDeleteResult {
+  ok: boolean;
+  count: number;
+  error: string | null;
+}
+
+/** Soft-delete every task (any status) in the caller's private workspace. */
+export async function deleteAllMyTasksAction(): Promise<BulkDeleteResult> {
+  const supabase = await getAuthedClient();
+  if (!supabase) {
+    return { ok: false, count: 0, error: REASON_MESSAGES.not_authenticated };
+  }
+
+  const { data, error } = await supabase.rpc("soft_delete_all_my_tasks");
+  if (error) return { ok: false, count: 0, error: GENERIC_ERROR };
+
+  revalidateTaskRoutes();
+  return { ok: true, count: typeof data === "number" ? data : 0, error: null };
+}

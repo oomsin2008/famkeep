@@ -33,6 +33,8 @@ import {
   driveConfigured,
   MAX_UPLOAD_BYTES,
   mimeToKind,
+  renameDriveFile,
+  renamePreservingExtension,
   safeFilename,
   synthName,
   uploadToDrive,
@@ -58,10 +60,11 @@ function savedReply(
   fileId: string | null | undefined,
 ): string {
   const head = kind === "image" ? "🖼️ เซฟรูปแล้ว" : "📄 เซฟไฟล์แล้ว";
+  const renameHint = "\n\nหากต้องการเปลี่ยนชื่อ ส่ง: #ชื่อไฟล์ <ชื่อใหม่>";
   const link = fileLink(fileId);
   return link
-    ? `${head}\n${name}\n\n🔗 เปิดใน FamKeep:\n${link}`
-    : `${head}\n${name}`;
+    ? `${head}\n${name}\n\n🔗 เปิดใน FamKeep:\n${link}${renameHint}`
+    : `${head}\n${name}${renameHint}`;
 }
 
 const admin = createClient(SUPABASE_URL, SERVICE_KEY, {
@@ -86,6 +89,7 @@ const KEEP_HINT =
   "รับรูปแล้ว หากต้องการเก็บเข้าคลังครอบครัว ให้ตอบกลับรูปนั้นว่า #เก็บ";
 
 const KEEP_EXACT = new Set(["#เก็บ", "เก็บรูปนี้"]);
+const RENAME_PREFIXES = ["#ชื่อไฟล์", "#เปลี่ยนชื่อ"];
 const PENDING_IMAGE_TTL_MS = 24 * 60 * 60 * 1000;
 
 function json(body: unknown, status = 200) {
@@ -188,6 +192,11 @@ async function handleEvent(event: LineWebhookEvent): Promise<void> {
           runBackground(handleKeepImage(event, eventId));
           return;
         }
+        const renameName = parseRenameCommand(t);
+        if (renameName !== null) {
+          runBackground(handleRenameRecentFile(event, eventId, renameName));
+          return;
+        }
         await handleTextMessage(event, m.text);
       } else if (m.type === "image" || m.type === "file") {
         runBackground(handleMediaIngest(event, eventId));
@@ -207,6 +216,94 @@ async function handleEvent(event: LineWebhookEvent): Promise<void> {
     console.error("processing error", (err as Error).message);
     await markProcessed(eventId, "error");
   }
+}
+
+function parseRenameCommand(text: string): string | null {
+  for (const prefix of RENAME_PREFIXES) {
+    if (text === prefix) return "";
+    if (text.startsWith(`${prefix} `)) return text.slice(prefix.length).trim();
+  }
+  return null;
+}
+
+async function handleRenameRecentFile(
+  event: LineWebhookEvent,
+  eventId: string,
+  rawName: string,
+): Promise<void> {
+  let status: "done" | "error" = "done";
+  let replyMsg = "";
+
+  try {
+    if (!rawName.trim()) {
+      replyMsg = "รูปแบบ: #ชื่อไฟล์ <ชื่อใหม่>";
+    } else {
+      const source = event.source;
+      const lineUserId = source?.userId ?? null;
+      if (!lineUserId) {
+        replyMsg = "ไม่ทราบผู้ส่ง กรุณาเพิ่ม FamKeep เป็นเพื่อนใน LINE ก่อน";
+      } else {
+        const { data: reg } = await admin.rpc("register_line_user_conversation", {
+          p_line_user_id: lineUserId,
+        });
+        const profileId = firstRow(reg)?.profile_id ?? null;
+        if (!profileId) {
+          replyMsg = HINT_NOT_LINKED;
+        } else {
+          const { data: latest, error: lookupErr } = await admin.rpc(
+            "latest_file_for_line_rename",
+            { p_actor_profile_id: profileId },
+          );
+          if (lookupErr) {
+            console.error("latest_file_for_line_rename error", lookupErr.message);
+            replyMsg = "เปลี่ยนชื่อไฟล์ไม่สำเร็จ กรุณาลองใหม่";
+            status = "error";
+          } else {
+            const row = firstRow(latest);
+            if (!row?.file_id || !row.name || !row.drive_file_id) {
+              replyMsg = "ไม่พบไฟล์ล่าสุดที่จะเปลี่ยนชื่อ";
+            } else {
+              const newName = renamePreservingExtension(rawName, row.name);
+              const renamed = await renameDriveFile(row.drive_file_id, newName);
+              if (!renamed.ok) {
+                replyMsg = renamed.reason === "invalid_grant"
+                  ? MSG_DRIVE_REAUTH
+                  : "เปลี่ยนชื่อไฟล์ใน Drive ไม่สำเร็จ กรุณาลองใหม่";
+                status = "error";
+              } else {
+                const { data: saved, error: saveErr } = await admin.rpc(
+                  "rename_file_metadata_from_line",
+                  {
+                    p_actor_profile_id: profileId,
+                    p_file_id: row.file_id,
+                    p_new_name: newName,
+                  },
+                );
+                const savedRow = firstRow(saved);
+                if (saveErr || savedRow?.blocked_reason) {
+                  console.error(
+                    "rename_file_metadata_from_line error",
+                    saveErr?.message ?? savedRow?.blocked_reason,
+                  );
+                  replyMsg = "เปลี่ยนชื่อไฟล์ไม่สำเร็จ กรุณาลองใหม่";
+                  status = "error";
+                } else {
+                  replyMsg = `เปลี่ยนชื่อไฟล์แล้ว\n${newName}`;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error("rename recent file failed", (err as Error).message);
+    replyMsg = "เปลี่ยนชื่อไฟล์ไม่สำเร็จ กรุณาลองใหม่";
+    status = "error";
+  }
+
+  if (replyMsg) await tryReply(event, replyMsg);
+  await markProcessed(eventId, status);
 }
 
 // ---- #งาน --------------------------------------------------------------------
@@ -589,6 +686,8 @@ interface RpcRow {
   blocked_reason?: string | null;
   task_id?: string | null;
   file_id?: string | null;
+  drive_file_id?: string | null;
+  name?: string | null;
   line_message_id?: string | null;
 }
 function firstRow(data: unknown): RpcRow | null {

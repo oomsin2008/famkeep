@@ -13,6 +13,8 @@ import { useTasks } from "@/components/providers/TasksProvider";
 import { deriveTaskStatus, selectHomeTasks } from "@/lib/tasks";
 import type { FileView, TaskView } from "@/lib/types";
 import { ClayTile, type ClayTone } from "@/components/ui/ClayTile";
+import { LinkPendingHint } from "@/components/ui/LinkPendingHint";
+import { HomeSkeleton } from "@/components/ui/Skeletons";
 import { TaskRow } from "@/components/tasks/TaskRow";
 import { FileRow } from "@/components/files/FileRow";
 
@@ -32,7 +34,7 @@ function Stat({
   return (
     <Link
       href={href}
-      className="fk-stat fk-soft-hover flex items-center gap-3.5 p-4"
+      className="fk-stat fk-soft-hover relative flex items-center gap-3.5 p-4"
     >
       <ClayTile tone={tone} size={48} radius={16}>
         {icon}
@@ -43,6 +45,7 @@ function Stat({
         </div>
         <div className="mt-1.5 text-[12.5px] font-medium text-text-2">{label}</div>
       </div>
+      <LinkPendingHint className="absolute right-3 top-3" />
     </Link>
   );
 }
@@ -59,7 +62,7 @@ export function HomeView({
   const { now } = useTasks();
 
   if (!now) {
-    return <div className="fk-card h-56 animate-pulse" />;
+    return <HomeSkeleton />;
   }
 
   const open = tasks.filter((t) => t.lifecycleStatus === "open");

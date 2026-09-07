@@ -43,3 +43,11 @@ export function useTasks(): TasksContextValue {
   if (!ctx) throw new Error("useTasks must be used within <TasksProvider>");
   return ctx;
 }
+
+/** Non-throwing read + setter for the task filter, for shell chrome. Null off-provider. */
+export function useTaskFilterControls():
+  | Pick<TasksContextValue, "filter" | "setFilter">
+  | null {
+  const ctx = useContext(TasksContext);
+  return ctx ? { filter: ctx.filter, setFilter: ctx.setFilter } : null;
+}

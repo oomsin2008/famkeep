@@ -18,6 +18,7 @@ interface FilesContextValue {
   openedFile: FileView | null;
   /** Open the detail modal and switch the Locker tab to that file's workspace (readme §4). */
   openFile: (file: FileView) => void;
+  renameOpenedFile: (fileId: string, name: string) => void;
   closeFile: () => void;
 }
 
@@ -34,9 +35,22 @@ export function FilesProvider({ children }: { children: ReactNode }) {
 
   const closeFile = useCallback(() => setOpenedFile(null), []);
 
+  const renameOpenedFile = useCallback((fileId: string, name: string) => {
+    setOpenedFile((current) =>
+      current?.id === fileId ? { ...current, name } : current,
+    );
+  }, []);
+
   const value = useMemo<FilesContextValue>(
-    () => ({ lockerTab, setLockerTab, openedFile, openFile, closeFile }),
-    [lockerTab, openedFile, openFile, closeFile],
+    () => ({
+      lockerTab,
+      setLockerTab,
+      openedFile,
+      openFile,
+      renameOpenedFile,
+      closeFile,
+    }),
+    [lockerTab, openedFile, openFile, renameOpenedFile, closeFile],
   );
 
   return (
@@ -53,4 +67,12 @@ export function useFiles(): FilesContextValue {
 /** Non-throwing read of the active Locker workspace, for shell chrome. */
 export function useLockerTab(): Workspace {
   return useContext(FilesContext)?.lockerTab ?? "private";
+}
+
+/** Non-throwing read + setter for the Locker tab, for shell chrome. Null off-provider. */
+export function useLockerTabControls():
+  | Pick<FilesContextValue, "lockerTab" | "setLockerTab">
+  | null {
+  const ctx = useContext(FilesContext);
+  return ctx ? { lockerTab: ctx.lockerTab, setLockerTab: ctx.setLockerTab } : null;
 }

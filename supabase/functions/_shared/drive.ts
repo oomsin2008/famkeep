@@ -219,6 +219,41 @@ export async function moveAndRenameDriveFile(
   return res.ok ? { ok: true } : { ok: false, reason: "move_failed" };
 }
 
+/** Best-effort rename of a Drive file without changing folders. */
+export async function renameDriveFile(
+  driveFileId: string,
+  newName: string,
+): Promise<DriveMoveResult> {
+  if (!driveConfigured()) return { ok: false, reason: "not_configured" };
+
+  let token: string;
+  try {
+    token = await accessToken();
+  } catch (err) {
+    return {
+      ok: false,
+      reason: err instanceof DriveError && err.code === "invalid_grant"
+        ? "invalid_grant"
+        : "move_failed",
+    };
+  }
+
+  const res = await fetch(
+    `https://www.googleapis.com/drive/v3/files/${
+      encodeURIComponent(driveFileId)
+    }?fields=id`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name: newName }),
+    },
+  );
+  return res.ok ? { ok: true } : { ok: false, reason: "move_failed" };
+}
+
 // ---- filename / kind helpers ------------------------------------------------
 
 export type FileKind = "pdf" | "image" | "doc" | "other";
@@ -351,5 +386,28 @@ export function safeFilename(
   if (stem.length > room) stem = stem.slice(0, room).trim();
   if (!stem) stem = KIND_THAI[mimeToKind(mime)];
 
+  return `${stem}.${ext}`;
+}
+
+/** Sanitize a user-provided rename while keeping the old extension by default. */
+export function renamePreservingExtension(
+  rawName: string,
+  originalName: string,
+): string {
+  const original = sanitizeName(originalName);
+  const oldDot = original.lastIndexOf(".");
+  const oldExt = oldDot > 0 ? original.slice(oldDot + 1).toLowerCase() : "bin";
+
+  const cleaned = sanitizeName(rawName);
+  const dot = cleaned.lastIndexOf(".");
+  const hasExt = dot > 0 &&
+    dot < cleaned.length - 1 &&
+    /^[A-Za-z0-9]{1,10}$/.test(cleaned.slice(dot + 1));
+
+  let stem = hasExt ? cleaned.slice(0, dot) : cleaned;
+  const ext = hasExt ? cleaned.slice(dot + 1).toLowerCase() : oldExt;
+  const room = MAX_NAME_LEN - (ext.length + 1);
+  if (stem.length > room) stem = stem.slice(0, room).trim();
+  if (!stem) stem = "file";
   return `${stem}.${ext}`;
 }

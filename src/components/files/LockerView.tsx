@@ -1,11 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import { FileArrowUp } from "@phosphor-icons/react";
+import * as Popover from "@radix-ui/react-popover";
+import {
+  ArrowsDownUp,
+  CaretDown,
+  Check,
+  FileArrowUp,
+  ListBullets,
+  SquaresFour,
+  type Icon,
+} from "@phosphor-icons/react";
 import { useFiles } from "@/components/providers/FilesProvider";
+import { InlineDeleteButton } from "@/components/ui/InlineDeleteButton";
+import { DeleteAllDialog } from "@/components/ui/DeleteAllDialog";
+import {
+  deleteAllMyFilesAction,
+  deleteFileAction,
+} from "@/lib/files/file-actions";
 import { formatThaiDate } from "@/lib/datetime";
 import type { FileView, Workspace } from "@/lib/types";
 import { ClayTile } from "@/components/ui/ClayTile";
+import { FileCard } from "./FileCard";
+import { UploadImageDialog } from "./UploadImageDialog";
 import { FileRow } from "./FileRow";
 import {
   FILE_KIND_CLAY,
@@ -20,43 +37,58 @@ const TABS: { key: Workspace; label: string }[] = [
   { key: "family", label: "ครอบครัว" },
 ];
 
-type SortKey =
-  | "date-desc"
-  | "date-asc"
-  | "name-asc"
-  | "name-desc"
-  | "size-desc"
-  | "size-asc";
+type ViewMode = "list" | "grid";
+type SortField = "name" | "date" | "size";
+type SortDir = "asc" | "desc";
 
-const SORTS: { key: SortKey; label: string }[] = [
-  { key: "date-desc", label: "วันที่ ใหม่→เก่า" },
-  { key: "date-asc", label: "วันที่ เก่า→ใหม่" },
-  { key: "name-asc", label: "ชื่อไฟล์ A→Z" },
-  { key: "name-desc", label: "ชื่อไฟล์ Z→A" },
-  { key: "size-desc", label: "ขนาด ใหญ่→เล็ก" },
-  { key: "size-asc", label: "ขนาด เล็ก→ใหญ่" },
+const SORT_FIELDS: { key: SortField; label: string }[] = [
+  { key: "name", label: "ชื่อไฟล์" },
+  { key: "date", label: "วันที่บันทึก" },
+  { key: "size", label: "ขนาดไฟล์" },
 ];
 
-function sortFiles(files: FileView[], key: SortKey): FileView[] {
-  const out = [...files];
-  out.sort((a, b) => {
-    switch (key) {
-      case "name-asc":
-        return a.name.localeCompare(b.name, "th");
-      case "name-desc":
-        return b.name.localeCompare(a.name, "th");
-      case "date-asc":
-        return a.createdAt.localeCompare(b.createdAt);
-      case "size-desc":
-        return b.sizeBytes - a.sizeBytes;
-      case "size-asc":
-        return a.sizeBytes - b.sizeBytes;
-      case "date-desc":
-      default:
-        return b.createdAt.localeCompare(a.createdAt);
-    }
-  });
-  return out;
+/** Direction wording follows the field, the way Drive relabels asc/desc. */
+const SORT_DIRECTIONS: Record<SortField, { key: SortDir; label: string }[]> = {
+  name: [
+    { key: "asc", label: "ก → ฮ (A → Z)" },
+    { key: "desc", label: "ฮ → ก (Z → A)" },
+  ],
+  date: [
+    { key: "desc", label: "ใหม่ → เก่า" },
+    { key: "asc", label: "เก่า → ใหม่" },
+  ],
+  size: [
+    { key: "desc", label: "ใหญ่ → เล็ก" },
+    { key: "asc", label: "เล็ก → ใหญ่" },
+  ],
+};
+
+/** Default direction when the field changes: names A→Z, date and size largest first. */
+const DEFAULT_DIR: Record<SortField, SortDir> = {
+  name: "asc",
+  date: "desc",
+  size: "desc",
+};
+
+function compareFiles(a: FileView, b: FileView, field: SortField): number {
+  switch (field) {
+    case "name":
+      return a.name.localeCompare(b.name, "th");
+    case "size":
+      return a.sizeBytes - b.sizeBytes;
+    case "date":
+    default:
+      return a.createdAt.localeCompare(b.createdAt);
+  }
+}
+
+function sortFiles(
+  files: FileView[],
+  field: SortField,
+  dir: SortDir,
+): FileView[] {
+  const sign = dir === "asc" ? 1 : -1;
+  return [...files].sort((a, b) => sign * compareFiles(a, b, field));
 }
 
 export function LockerView({
@@ -69,12 +101,20 @@ export function LockerView({
   familyMemberCount: number;
 }) {
   const { lockerTab, setLockerTab, openFile } = useFiles();
-  const [sort, setSort] = useState<SortKey>("date-desc");
+  const [view, setView] = useState<ViewMode>("grid");
+  const [sortField, setSortField] = useState<SortField>("date");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   const visible = sortFiles(
     files.filter((f) => f.workspace === lockerTab),
-    sort,
+    sortField,
+    sortDir,
   );
+
+  function pickField(field: SortField) {
+    setSortField(field);
+    setSortDir(DEFAULT_DIR[field]);
+  }
 
   const title = lockerTab === "private" ? "ของฉัน" : (familyName ?? "ครอบครัว");
   const subtitle =
@@ -84,7 +124,7 @@ export function LockerView({
 
   return (
     <div>
-      <div className="inline-flex rounded-pill border border-border/70 bg-surface-glass p-1 shadow-soft">
+      <div className="inline-flex rounded-pill border border-border/70 bg-surface-glass p-1 shadow-soft lg:hidden">
         {TABS.map((tab) => {
           const active = tab.key === lockerTab;
           const activeTone =
@@ -108,25 +148,28 @@ export function LockerView({
         })}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
+      <div className="mt-4 flex flex-wrap items-end justify-between gap-3 lg:mt-0">
         <div>
           <h1 className="text-[24px] font-semibold md:text-[28px]">{title}</h1>
           <p className="mt-1 text-[13px] text-text-2">{subtitle}</p>
         </div>
-        <label className="flex items-center gap-2 text-[12.5px] text-text-2">
-          จัดเรียง
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value as SortKey)}
-            className="min-h-11 rounded-standard border border-border bg-surface px-2.5 text-[13px] text-text shadow-soft outline-none focus:border-primary"
-          >
-            {SORTS.map((s) => (
-              <option key={s.key} value={s.key}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="flex flex-wrap items-center gap-2">
+          <UploadImageDialog />
+          {lockerTab === "private" ? (
+            <DeleteAllDialog
+              noun="ไฟล์"
+              count={visible.length}
+              onConfirm={deleteAllMyFilesAction}
+            />
+          ) : null}
+          <SortMenu
+            field={sortField}
+            dir={sortDir}
+            onPickField={pickField}
+            onPickDir={setSortDir}
+          />
+          <ViewToggle view={view} onChange={setView} />
+        </div>
       </div>
 
       {visible.length === 0 ? (
@@ -140,6 +183,12 @@ export function LockerView({
               : "ยังไม่มีไฟล์ในคลังนี้ ส่งไฟล์หรือรูปหาบอท FamKeep ใน LINE เพื่อบันทึก"}
           </p>
         </div>
+      ) : view === "grid" ? (
+        <div className="mt-5 grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {visible.map((file) => (
+            <FileCard key={file.id} file={file} />
+          ))}
+        </div>
       ) : (
         <>
           <div className="fk-card mt-5 hidden p-4 md:block">
@@ -149,7 +198,10 @@ export function LockerView({
                   <th className="w-1/2 px-2 pb-2 font-semibold">ชื่อไฟล์</th>
                   <th className="pb-2 font-semibold">ชนิด</th>
                   <th className="pb-2 font-semibold">ผู้บันทึก</th>
-                  <th className="pb-2 pr-2 text-right font-semibold">วันที่</th>
+                  <th className="pb-2 font-semibold">วันที่</th>
+                  <th className="pb-2 pr-2">
+                    <span className="sr-only">การจัดการ</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -166,11 +218,147 @@ export function LockerView({
 
           <div className="mt-5 flex flex-col gap-2.5 md:hidden">
             {visible.map((file) => (
-              <FileRow key={file.id} file={file} />
+              <FileRow key={file.id} file={file} deletable />
             ))}
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+/** Drive-style sort control: one group picks the field, one picks the direction. */
+function SortMenu({
+  field,
+  dir,
+  onPickField,
+  onPickDir,
+}: {
+  field: SortField;
+  dir: SortDir;
+  onPickField: (field: SortField) => void;
+  onPickDir: (dir: SortDir) => void;
+}) {
+  const fieldLabel = SORT_FIELDS.find((f) => f.key === field)?.label ?? "";
+
+  return (
+    <Popover.Root>
+      <Popover.Trigger asChild>
+        <button
+          type="button"
+          className="inline-flex min-h-12 items-center gap-2 rounded-pill border border-border/70 bg-surface-glass px-4 text-[13px] font-semibold text-text-2 shadow-soft hover:text-text"
+        >
+          <ArrowsDownUp size={16} />
+          {fieldLabel}
+          <CaretDown size={12} weight="bold" />
+        </button>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content
+          align="end"
+          sideOffset={6}
+          className="fk-glass z-50 flex w-60 flex-col rounded-standard p-2"
+        >
+          <p className="px-2.5 pb-1 pt-1.5 text-[11.5px] font-semibold text-text-2">
+            จัดเรียงตาม
+          </p>
+          <div role="group" aria-label="จัดเรียงตาม" className="flex flex-col">
+            {SORT_FIELDS.map((f) => (
+              <SortMenuItem
+                key={f.key}
+                label={f.label}
+                active={f.key === field}
+                onSelect={() => onPickField(f.key)}
+              />
+            ))}
+          </div>
+
+          <div className="my-1.5 border-t border-border/70" />
+
+          <p className="px-2.5 pb-1 text-[11.5px] font-semibold text-text-2">
+            ลำดับ
+          </p>
+          <div role="group" aria-label="ลำดับ" className="flex flex-col">
+            {SORT_DIRECTIONS[field].map((d) => (
+              <SortMenuItem
+                key={d.key}
+                label={d.label}
+                active={d.key === dir}
+                onSelect={() => onPickDir(d.key)}
+              />
+            ))}
+          </div>
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
+  );
+}
+
+function SortMenuItem({
+  label,
+  active,
+  onSelect,
+}: {
+  label: string;
+  active: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={active}
+      className="flex min-h-11 items-center gap-2 rounded-standard px-2.5 text-left text-[13px] hover:bg-surface-muted/70"
+    >
+      <Check
+        size={14}
+        weight="bold"
+        className={active ? "text-primary" : "invisible"}
+      />
+      <span className={active ? "font-semibold" : ""}>{label}</span>
+    </button>
+  );
+}
+
+function ViewToggle({
+  view,
+  onChange,
+}: {
+  view: ViewMode;
+  onChange: (view: ViewMode) => void;
+}) {
+  const options: { key: ViewMode; label: string; Icon: Icon }[] = [
+    { key: "list", label: "มุมมองรายการ", Icon: ListBullets },
+    { key: "grid", label: "มุมมองตาราง", Icon: SquaresFour },
+  ];
+
+  return (
+    <div
+      role="group"
+      aria-label="รูปแบบการแสดงผล"
+      className="inline-flex rounded-pill border border-border/70 bg-surface-glass p-1 shadow-soft"
+    >
+      {options.map(({ key, label, Icon }) => {
+        const active = key === view;
+        return (
+          <button
+            key={key}
+            type="button"
+            onClick={() => onChange(key)}
+            aria-pressed={active}
+            aria-label={label}
+            title={label}
+            className={[
+              "flex size-10 items-center justify-center rounded-pill transition-colors",
+              active
+                ? "bg-primary-soft text-primary-strong"
+                : "text-text-2 hover:text-text",
+            ].join(" ")}
+          >
+            <Icon size={18} weight={active ? "bold" : "regular"} />
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -210,8 +398,20 @@ function LockerTableRow({
       </td>
       <td className="text-[12.5px] text-text-2">{FILE_KIND_LABEL[file.kind]}</td>
       <td className="text-[12.5px]">{file.savedByName}</td>
-      <td className="pr-2 text-right text-[12.5px] text-text-2">
+      <td className="text-[12.5px] text-text-2">
         {formatThaiDate(file.createdAt)}
+      </td>
+      <td
+        className="pr-2 text-right"
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+      >
+        <InlineDeleteButton
+          itemLabel={file.name}
+          question="ลบไฟล์นี้?"
+          successMessage="ลบไฟล์แล้ว"
+          onConfirm={() => deleteFileAction(file.id)}
+        />
       </td>
     </tr>
   );

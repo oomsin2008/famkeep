@@ -4,7 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MagnifyingGlass, User } from "@phosphor-icons/react";
 import { useLockerTab } from "@/components/providers/FilesProvider";
+import { LinkPendingHint } from "@/components/ui/LinkPendingHint";
 import { BrandMark } from "./BrandMark";
+import { TopNavContextTabs } from "./TopNavContextTabs";
 import { NAV_ITEMS, getActiveNavHref, navAccent } from "./nav-config";
 
 const ACTIVE_ACCENT = {
@@ -33,32 +35,37 @@ export function DesktopTopNav() {
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={[
-                "flex min-h-10 items-center rounded-pill px-4 text-sm transition-colors",
+                "relative flex min-h-10 items-center rounded-pill px-4 text-sm transition-colors",
                 active
                   ? ACTIVE_ACCENT[accent]
                   : "text-text-2 hover:bg-surface-muted/70 hover:text-text",
               ].join(" ")}
             >
               {item.label}
+              <LinkPendingHint className="absolute bottom-1 left-1/2 -translate-x-1/2" />
             </Link>
           );
         })}
 
-        <button
-          type="button"
-          aria-label="ค้นหา"
-          className="ml-auto flex size-10 items-center justify-center rounded-full border border-white/60 bg-white/70 text-text-2 shadow-soft transition-colors hover:text-text"
-        >
-          <MagnifyingGlass size={18} />
-        </button>
+        <div className="ml-auto flex items-center gap-2">
+          <TopNavContextTabs />
 
-        <Link
-          href="/settings"
-          aria-label="ตั้งค่า"
-          className="fk-clay fk-clay-blue flex size-10 items-center justify-center rounded-full text-primary-strong"
-        >
-          <User size={18} weight="duotone" />
-        </Link>
+          <button
+            type="button"
+            aria-label="ค้นหา"
+            className="flex size-10 items-center justify-center rounded-full border border-white/60 bg-white/70 text-text-2 shadow-soft transition-colors hover:text-text"
+          >
+            <MagnifyingGlass size={18} />
+          </button>
+
+          <Link
+            href="/settings"
+            aria-label="ตั้งค่า"
+            className="fk-clay fk-clay-blue flex size-10 items-center justify-center rounded-full text-primary-strong"
+          >
+            <User size={18} weight="duotone" />
+          </Link>
+        </div>
       </nav>
     </header>
   );

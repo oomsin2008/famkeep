@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLockerTab } from "@/components/providers/FilesProvider";
+import { LinkPendingHint } from "@/components/ui/LinkPendingHint";
 import { NAV_ITEMS, getActiveNavHref, navAccent } from "./nav-config";
 
 const ACTIVE_ACCENT = {
@@ -32,7 +33,7 @@ export function MobileBottomNav() {
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={[
-              "flex min-h-11 flex-1 flex-col items-center justify-center gap-1 py-2",
+              "relative flex min-h-11 flex-1 flex-col items-center justify-center gap-1 py-2",
               active ? ACTIVE_ACCENT[accent] : "text-text-2",
             ].join(" ")}
           >
@@ -47,6 +48,7 @@ export function MobileBottomNav() {
             <span className={["text-[12px]", active ? "font-semibold" : ""].join(" ")}>
               {item.label}
             </span>
+            <LinkPendingHint className="absolute bottom-0.5 left-1/2 -translate-x-1/2" />
           </Link>
         );
       })}
