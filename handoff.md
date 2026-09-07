@@ -28,6 +28,21 @@ https://github.com/oomsin2008/famkeep
 
 ## Current User Request / State
 
+### Session 2f (2026-09-07) — Settings: real profile + edit display name
+
+`GeneralSection` was the last mock-data component. Now:
+- `/settings/page.tsx` is a server component behind `requireUser()`, loads the
+  real profile via `getOwnProfile()` (`src/lib/auth/profile.ts`).
+- The disabled "แก้ไขโปรไฟล์" button → a pencil that edits **display_name only**
+  inline (email + avatar shown read-only; avatar is the LINE picture).
+- `updateDisplayNameAction` (`src/lib/auth/profile-actions.ts`) → RPC
+  `update_own_profile(p_display_name)` — column-scoped, `authenticated` only,
+  migration `20260907170000` (applied via MCP). Tested live (set + restored).
+- `src/lib/mock/data.ts` deleted; `FamilyMember` type removed from `types.ts`.
+
+tsc / lint / test (5) / build pass. Committed `630b07b`, pushed. No deploy
+needed (web only).
+
 ### Session 2e (2026-09-07) — LINE messages: Flex bubbles + warmer tone (A2 + B2)
 
 User picked option "A2 + B2" from a mockup (artifact
