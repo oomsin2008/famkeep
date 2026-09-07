@@ -12,7 +12,7 @@
 // background task so the webhook returns 200 immediately; the confirmation
 // still uses the message's reply token.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "npm:@supabase/supabase-js@2";
 import {
   fetchLineContent,
   getGroupName,

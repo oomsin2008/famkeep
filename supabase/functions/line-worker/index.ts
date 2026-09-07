@@ -2,7 +2,7 @@
 // header (X-Worker-Secret) that pg_cron reads from Supabase Vault.
 // Invoked ~every minute by the `famkeep-drain-jobs` cron job.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "npm:@supabase/supabase-js@2";
 import { type LineFlexMessage, pushMessage } from "../_shared/line.ts";
 import { reminderFlex } from "../_shared/line-flex.ts";
 
