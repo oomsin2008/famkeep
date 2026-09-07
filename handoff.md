@@ -28,6 +28,18 @@ https://github.com/oomsin2008/famkeep
 
 ## Current User Request / State
 
+### Session 2h (2026-09-07) — Locker: multi-select
+
+`/locker` "ลบทั้งหมด" button removed (the `/settings/reset` flow covers that
+need). New "เลือก" mode: checkboxes on each card / row + a selection bar with
+เลือกทั้งหมด, ดาวน์โหลด (N) (staggered per-file `<a download>`), ลบ (N)
+(one-tap Popover confirm → `deleteFilesAction(ids)` loops the `file-delete`
+Edge Function). Single delete + single download unchanged.
+`FileCard` / `FileRow` / `LockerTableRow` gained optional
+`selectMode` / `selected` / `onToggle*` props; Home's `FileRow` unaffected.
+`deleteAllMyFilesAction` → `deleteFilesAction(ids[])` in `file-actions.ts`.
+Web only, no deploy. Committed `806ec54`.
+
 ### Session 2g (2026-09-07) — Settings: owner-only data reset
 
 New `/settings/reset` ("ล้างข้อมูล", in the sidebar + drilldown + back-header).
