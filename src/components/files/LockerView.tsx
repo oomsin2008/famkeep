@@ -307,7 +307,7 @@ export function LockerView({
           <p className="max-w-sm text-sm text-text-2">
             {lockerTab === "family"
               ? "ยังไม่มีไฟล์ในคลังครอบครัว ส่งเอกสารในกลุ่ม LINE ที่อนุมัติแล้ว หรือตอบกลับรูปด้วย #เก็บ"
-              : "ยังไม่มีไฟล์ในคลังนี้ ส่งไฟล์หรือรูปหาบอท FamKeep ใน LINE เพื่อบันทึก"}
+              : "ยังไม่มีไฟล์ในคลังนี้ ส่งไฟล์หรือรูปหาบอท KitiButler ใน LINE เพื่อบันทึก"}
           </p>
         </div>
       ) : view === "grid" ? (

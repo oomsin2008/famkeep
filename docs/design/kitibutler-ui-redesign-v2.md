@@ -1,8 +1,8 @@
-# FamKeep UI Redesign v2 — Claymorphism + Glassmorphism Design System
+# KitiButler UI Redesign v2 — Claymorphism + Glassmorphism Design System
 
 ## 1. Design Direction
 
-FamKeep v2 ใช้แนวทางภาพแบบ:
+KitiButler v2 ใช้แนวทางภาพแบบ:
 
 - 3D claymorphism
 - soft glassmorphism
@@ -13,7 +13,7 @@ FamKeep v2 ใช้แนวทางภาพแบบ:
 - soft shadows
 - clean Thai-first productivity UI
 
-เป้าหมายคือทำให้ FamKeep ดู:
+เป้าหมายคือทำให้ KitiButler ดู:
 - อบอุ่น
 - เป็นมิตรกับครอบครัว
 - พรีเมียม

@@ -4,7 +4,7 @@ interface BrandMarkProps {
 }
 
 /**
- * FamKeep logo lockup: the app icon + wordmark.
+ * KitiButler logo lockup: the app icon + wordmark.
  */
 export function BrandMark({ size = 17 }: BrandMarkProps) {
   const mark = size + 9;
@@ -12,7 +12,7 @@ export function BrandMark({ size = 17 }: BrandMarkProps) {
     <span className="inline-flex items-center gap-2 text-text">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/brand/famkeep-logo.jpg"
+        src="/brand/kitibutler-logo.png"
         alt=""
         aria-hidden
         width={mark}
@@ -21,7 +21,7 @@ export function BrandMark({ size = 17 }: BrandMarkProps) {
         style={{ width: mark, height: mark }}
       />
       <span className="font-bold tracking-tight" style={{ fontSize: size + 1 }}>
-        FamKeep
+        KitiButler
       </span>
     </span>
   );

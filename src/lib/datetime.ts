@@ -1,5 +1,5 @@
 /*
-  Centralized date/time utilities for FamKeep (rule 3, locked 2026-09-01).
+  Centralized date/time utilities for KitiButler (rule 3, locked 2026-09-01).
 
   - Product locale: th-TH
   - Canonical timezone: Asia/Bangkok

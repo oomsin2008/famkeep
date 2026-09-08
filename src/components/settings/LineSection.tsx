@@ -92,7 +92,7 @@ export function LineSection({ authStatus, lineConnection }: LineSectionProps) {
             <ChatCircleDots size={24} weight="fill" className="text-line" />
           </ClayTile>
           <div className="min-w-0">
-            <div className="text-[15px] font-semibold">การเชื่อมต่อ FamKeep กับ LINE</div>
+            <div className="text-[15px] font-semibold">การเชื่อมต่อ KitiButler กับ LINE</div>
             <div className="mt-0.5 text-[12.5px] text-text-2">
               เข้าสู่ระบบ:{" "}
               {authStatus.authenticated ? "เชื่อมแล้ว" : "ยังไม่ได้เข้าสู่ระบบ"}

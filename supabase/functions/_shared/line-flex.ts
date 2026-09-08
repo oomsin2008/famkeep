@@ -1,4 +1,4 @@
-// LINE Flex Message builders for FamKeep bot confirmations (A2 + B2).
+// LINE Flex Message builders for KitiButler bot confirmations (A2 + B2).
 // Colors mirror the app design tokens (docs/design). Every builder returns a
 // LineFlexMessage whose altText is the lock-screen notification text and the
 // fallback for clients that cannot render Flex. When `link` is null (no

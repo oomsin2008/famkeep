@@ -6,7 +6,7 @@ export type RequireUserResult =
   | { ok: true; supabase: SupabaseClient; user: User }
   | { ok: false; reason: "unconfigured" | "signed_out" };
 
-/** Server-only gate for pages that need an authenticated FamKeep user. */
+/** Server-only gate for pages that need an authenticated KitiButler user. */
 export async function requireUser(): Promise<RequireUserResult> {
   if (!isSupabaseConfigured()) {
     return { ok: false, reason: "unconfigured" };

@@ -1,5 +1,5 @@
 /*
-  FamKeep domain types. Phase 0: shapes only, no data layer.
+  KitiButler domain types. Phase 0: shapes only, no data layer.
   Rules reference: memory/famkeep-locked-decisions.md (locked 2026-09-01).
 */
 

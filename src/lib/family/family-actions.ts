@@ -11,7 +11,7 @@ const REASON_MESSAGES: Record<string, string> = {
   invalid_name: "กรุณากรอกชื่อพื้นที่ครอบครัว (ไม่เกิน 120 ตัวอักษร)",
   not_owner: "เฉพาะเจ้าของพื้นที่ครอบครัวเท่านั้นที่จัดการสมาชิกได้",
   invalid_line_user_id: "LINE user ID ไม่ถูกต้อง",
-  profile_not_found: "ไม่พบผู้ใช้ FamKeep สำหรับ LINE user ID นี้",
+  profile_not_found: "ไม่พบผู้ใช้ KitiButler สำหรับ LINE user ID นี้",
   already_member: "ผู้ใช้นี้เป็นสมาชิกอยู่แล้ว",
   not_a_member: "ไม่พบสมาชิกนี้ในพื้นที่ครอบครัว",
   last_owner: "ต้องมีเจ้าของอย่างน้อยหนึ่งคนเสมอ",

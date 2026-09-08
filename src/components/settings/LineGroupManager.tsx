@@ -66,7 +66,7 @@ export function LineGroupManager({ ws }: { ws: LineWorkspaceConnection }) {
       ) : (
         <p className="text-[12.5px] text-text-2">
           {ws.isOwner
-            ? "ยังไม่มีกลุ่ม LINE เพิ่ม FamKeep เข้ากลุ่มครอบครัวใน LINE แล้วกลับมาอนุมัติที่นี่"
+            ? "ยังไม่มีกลุ่ม LINE เพิ่ม KitiButler เข้ากลุ่มครอบครัวใน LINE แล้วกลับมาอนุมัติที่นี่"
             : "ยังไม่ได้เชื่อมกลุ่ม LINE (เจ้าของครอบครัวเป็นผู้อนุมัติ)"}
         </p>
       )}

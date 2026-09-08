@@ -1,9 +1,9 @@
 import Link from "next/link";
 
-/** Shown on authenticated screens when the visitor is not a signed-in FamKeep user. */
+/** Shown on authenticated screens when the visitor is not a signed-in KitiButler user. */
 export function SignInNotice({
   reason,
-  title = "FamKeep",
+  title = "KitiButler",
 }: {
   reason: "unconfigured" | "signed_out";
   title?: string;
@@ -12,8 +12,8 @@ export function SignInNotice({
     <div className="mx-auto flex max-w-md flex-col items-center gap-4 py-14 text-center">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/brand/famkeep-logo.jpg"
-        alt="FamKeep"
+        src="/brand/kitibutler-logo.png"
+        alt="KitiButler"
         width={64}
         height={64}
         className="size-16 rounded-[16px] shadow-soft ring-1 ring-black/5"

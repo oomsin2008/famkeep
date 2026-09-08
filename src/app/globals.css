@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 /*
-  FamKeep design tokens (Tailwind v4, CSS-first).
+  KitiButler design tokens (Tailwind v4, CSS-first).
   v3: strong 3D claymorphism + premium glassmorphism, warm pastel palette.
-  Source of truth: docs/design/famkeep-ui-redesign-v2.md
+  Source of truth: docs/design/kitibutler-ui-redesign-v2.md
   v1 token *names* are kept stable so components keep working.
 */
 @theme {

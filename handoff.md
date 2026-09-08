@@ -1,6 +1,13 @@
-# FamKeep Handoff
+# KitiButler Handoff
 
-Last updated: 2026-09-07
+Last updated: 2026-09-08
+
+Rebrand in progress: the app was renamed FamKeep -> KitiButler on 2026-09-08.
+In-app strings, wordmark, icons and package name are updated. The Vercel domain
+(`famkeep.vercel.app`) and GitHub repo (`oomsin2008/famkeep`) are not yet
+renamed; URLs below still reflect the old names until that external cutover is
+done. Supabase project ref, pg_cron job names and the `famkeep_worker_secret`
+vault key are deliberately left unchanged.
 
 Repo:
 
@@ -388,7 +395,7 @@ accuracy, not the filename logic.
 
 ## Original Project Summary
 
-FamKeep is a LINE-first family productivity app.
+KitiButler is a LINE-first family productivity app.
 
 MVP goals:
 
@@ -496,7 +503,7 @@ Earlier production tests reportedly passed:
 
 - LINE Login on production.
 - LINE 1:1 sends image/file and saves into Locker.
-- LINE reply link opens FamKeep.
+- LINE reply link opens KitiButler.
 - Web preview/download works through Google Drive proxy.
 - Web task creation works.
 - Reminder at due time sends LINE message.

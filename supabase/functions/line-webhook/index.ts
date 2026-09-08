@@ -51,7 +51,7 @@ const CHANNEL_SECRET = Deno.env.get("LINE_CHANNEL_SECRET") ?? "";
 const ACCESS_TOKEN = Deno.env.get("LINE_CHANNEL_ACCESS_TOKEN") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-// Optional: FamKeep web origin, e.g. https://famkeep.vercel.app. When set, a
+// Optional: KitiButler web origin, e.g. https://kitibutler.vercel.app. When set, a
 // save reply includes a login-gated deep link to the file. Never a Drive URL.
 const APP_PUBLIC_URL = (Deno.env.get("APP_PUBLIC_URL") ?? "").replace(/\/+$/, "");
 
@@ -72,9 +72,9 @@ const admin = createClient(SUPABASE_URL, SERVICE_KEY, {
 const HINT_USAGE =
   "วิธีสร้างงาน:\n#งาน ชื่องาน\nกำหนด: 15/09/2026 18:00 (ไม่บังคับ)\nผู้รับผิดชอบ: ชื่อสมาชิก หรือ ฉัน (เฉพาะครอบครัว)";
 const HINT_NOT_LINKED =
-  "ยังไม่ได้เชื่อมบัญชี FamKeep — เปิดแอป FamKeep แล้วเข้าสู่ระบบด้วย LINE ก่อน จากนั้นส่งอีกครั้ง";
+  "ยังไม่ได้เชื่อมบัญชี KitiButler — เปิดแอป KitiButler แล้วเข้าสู่ระบบด้วย LINE ก่อน จากนั้นส่งอีกครั้ง";
 const HINT_GROUP_PENDING =
-  "กลุ่มนี้ยังไม่ได้เปิดใช้งาน ให้เจ้าของครอบครัวอนุมัติที่ FamKeep › ตั้งค่า › การเชื่อมต่อ LINE";
+  "กลุ่มนี้ยังไม่ได้เปิดใช้งาน ให้เจ้าของครอบครัวอนุมัติที่ KitiButler › ตั้งค่า › การเชื่อมต่อ LINE";
 const MSG_DRIVE_UNAVAILABLE =
   "ยังบันทึกไฟล์ไม่ได้ในตอนนี้ ลองส่งไฟล์นั้นอีกครั้งในภายหลัง";
 const MSG_DRIVE_REAUTH =
@@ -191,7 +191,7 @@ async function handleEvent(event: LineWebhookEvent): Promise<void> {
       });
       await replyWith(
         event,
-        "เพิ่ม FamKeep เข้ากลุ่มแล้ว ให้เจ้าของครอบครัวอนุมัติกลุ่มนี้ที่ FamKeep › ตั้งค่า › การเชื่อมต่อ LINE",
+        "เพิ่ม KitiButler เข้ากลุ่มแล้ว ให้เจ้าของครอบครัวอนุมัติกลุ่มนี้ที่ KitiButler › ตั้งค่า › การเชื่อมต่อ LINE",
       );
     } else if (event.type === "message" && m) {
       if (m.type === "text" && typeof m.text === "string") {
@@ -249,7 +249,7 @@ async function handleRenameRecentFile(
       const source = event.source;
       const lineUserId = source?.userId ?? null;
       if (!lineUserId) {
-        replyMsg = "ไม่ทราบว่าใครส่ง รบกวนเพิ่ม FamKeep เป็นเพื่อนใน LINE ก่อน";
+        replyMsg = "ไม่ทราบว่าใครส่ง รบกวนเพิ่ม KitiButler เป็นเพื่อนใน LINE ก่อน";
       } else {
         const { data: reg } = await admin.rpc("register_line_user_conversation", {
           p_line_user_id: lineUserId,
@@ -351,7 +351,7 @@ async function handleTextMessage(
     workspaceId = firstRow(resolved)?.private_workspace_id ?? null;
   } else if (source?.type === "group" && source.groupId) {
     if (!source.userId) {
-      await reply("ไม่ทราบว่าใครส่ง รบกวนเพิ่ม FamKeep เป็นเพื่อนใน LINE ก่อน แล้วลองอีกครั้ง");
+      await reply("ไม่ทราบว่าใครส่ง รบกวนเพิ่ม KitiButler เป็นเพื่อนใน LINE ก่อน แล้วลองอีกครั้ง");
       return;
     }
     const { data: grp } = await admin.rpc("resolve_line_group", {
@@ -485,7 +485,7 @@ async function resolveMediaTarget(
 
   if (source?.type === "group" && source.groupId) {
     if (!source.userId) {
-      return { reply: "ไม่ทราบว่าใครส่ง รบกวนเพิ่ม FamKeep เป็นเพื่อนใน LINE ก่อน" };
+      return { reply: "ไม่ทราบว่าใครส่ง รบกวนเพิ่ม KitiButler เป็นเพื่อนใน LINE ก่อน" };
     }
     const { data: grp } = await admin.rpc("resolve_line_group", {
       p_group_id: source.groupId,

@@ -23,7 +23,7 @@ export function DesktopTopNav() {
   return (
     <header className="sticky top-0 z-40 hidden border-b border-white/40 bg-surface-glass shadow-soft backdrop-blur-xl md:block">
       <nav className="mx-auto flex h-16 w-full max-w-[1200px] items-center gap-2 px-8">
-        <Link href="/" aria-label="FamKeep หน้าหลัก" className="mr-4">
+        <Link href="/" aria-label="KitiButler หน้าหลัก" className="mr-4">
           <BrandMark />
         </Link>
 

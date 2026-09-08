@@ -9,7 +9,7 @@ import { BrandMark } from "./BrandMark";
 export function MobileTopHeader() {
   return (
     <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border/70 bg-surface-glass px-4 py-3.5 backdrop-blur-xl md:hidden">
-      <Link href="/" aria-label="FamKeep หน้าหลัก">
+      <Link href="/" aria-label="KitiButler หน้าหลัก">
         <BrandMark size={16} />
       </Link>
       <div className="flex items-center gap-3.5">

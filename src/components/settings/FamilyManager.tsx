@@ -74,7 +74,7 @@ export function AddMemberForm({ workspaceId }: { workspaceId: string }) {
         เพิ่มสมาชิกด้วย LINE user ID
       </label>
       <p className="text-[12.5px] text-text-2">
-        ผู้ใช้ต้องเคยเข้าสู่ระบบ FamKeep ด้วย LINE มาก่อน
+        ผู้ใช้ต้องเคยเข้าสู่ระบบ KitiButler ด้วย LINE มาก่อน
       </p>
       <input
         id="member-line-id"

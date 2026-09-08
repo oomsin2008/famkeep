@@ -13,7 +13,7 @@ const prompt = Prompt({
 });
 
 export const metadata: Metadata = {
-  title: "FamKeep",
+  title: "KitiButler",
   description:
     "พื้นที่ของครอบครัวสำหรับเก็บไฟล์ งาน และปฏิทินร่วมกัน เชื่อมต่อกับ LINE",
 };

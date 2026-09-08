@@ -1,5 +1,5 @@
 // Web/PWA file rename. verify_jwt = false because this function validates the
-// bearer token itself, then renames both Google Drive and FamKeep metadata.
+// bearer token itself, then renames both Google Drive and KitiButler metadata.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import {
