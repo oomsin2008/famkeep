@@ -14,7 +14,6 @@ export default async function SettingsPage() {
     <div className="flex flex-col gap-6">
       <GeneralSection
         displayName={profile.displayName}
-        email={profile.email}
         avatarUrl={profile.avatarUrl}
       />
       <SettingsDrilldownList />

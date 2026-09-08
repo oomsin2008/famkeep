@@ -17,11 +17,9 @@ function initialsOf(name: string): string {
 /** /settings root: the current user's profile card with inline name editing. */
 export function GeneralSection({
   displayName,
-  email,
   avatarUrl,
 }: {
   displayName: string;
-  email: string | null;
   avatarUrl: string | null;
 }) {
   const toast = useToast();
@@ -109,9 +107,6 @@ export function GeneralSection({
           ) : (
             <div className="truncate text-[16px] font-semibold">{shownName}</div>
           )}
-          <div className="mt-0.5 truncate text-[13px] text-text-2">
-            {email ?? "ไม่มีอีเมล"}
-          </div>
         </div>
 
         {!editing ? (
