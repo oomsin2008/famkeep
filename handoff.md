@@ -2,12 +2,11 @@
 
 Last updated: 2026-09-08
 
-Rebrand in progress: the app was renamed FamKeep -> KitiButler on 2026-09-08.
-In-app strings, wordmark, icons and package name are updated. The Vercel domain
-(`famkeep.vercel.app`) and GitHub repo (`oomsin2008/famkeep`) are not yet
-renamed; URLs below still reflect the old names until that external cutover is
-done. Supabase project ref, pg_cron job names and the `famkeep_worker_secret`
-vault key are deliberately left unchanged.
+Renamed FamKeep -> KitiButler on 2026-09-08: in-app strings, wordmark, icons,
+package name, Vercel domain and GitHub repo are all cut over. Supabase project
+ref, pg_cron job names and the `famkeep_worker_secret` vault key are
+deliberately left unchanged. The local working directory is still named
+`famkeep`.
 
 Repo:
 
@@ -18,7 +17,7 @@ D:\00_SourceCode\00_AI_App\famkeep
 Production:
 
 ```text
-https://famkeep.vercel.app
+https://kitibutler.vercel.app
 ```
 
 Supabase project ref:
@@ -30,7 +29,7 @@ zuoejigurotylrcisycw
 GitHub:
 
 ```text
-https://github.com/oomsin2008/famkeep
+https://github.com/oomsin2008/kitibutler
 ```
 
 ## Current User Request / State
