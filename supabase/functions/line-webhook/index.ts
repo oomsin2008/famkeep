@@ -537,7 +537,6 @@ async function handleTextMessage(
       assigneeName,
       context: isFamily ? "family" : "private",
       link: taskLink(crow?.task_id),
-      taskId: crow?.task_id ?? null,
     }),
   );
 }

@@ -319,7 +319,6 @@ export function taskCreatedFlex(o: {
   assigneeName?: string | null;
   context: FlexContext;
   link: string | null;
-  taskId: string | null;
 }): LineFlexMessage {
   const rows: Box[] = [
     text(o.title, { weight: "bold", size: "md", color: T.ink }),
@@ -334,7 +333,7 @@ export function taskCreatedFlex(o: {
     bubble({
       header: header("เพิ่มงานใหม่แล้ว", T.progress),
       body: body(rows),
-      footer: taskFooter(o.link, o.taskId, T.progress.ink),
+      footer: linkFooter("เปิดงานนี้", o.link, T.progress.ink),
     }),
   );
 }
