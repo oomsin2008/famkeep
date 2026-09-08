@@ -88,6 +88,41 @@ const KEEP_HINT =
 
 const KEEP_EXACT = new Set(["#เก็บ", "เก็บรูปนี้"]);
 const RENAME_PREFIXES = ["#ชื่อไฟล์", "#เปลี่ยนชื่อ"];
+
+const MENU_KEYWORDS = new Set([
+  "เมนู",
+  "menu",
+  "วิธีใช้",
+  "วิธีใช้งาน",
+  "ช่วยเหลือ",
+  "help",
+  "?",
+]);
+
+function menuText(): string {
+  const lines = [
+    "คำสั่ง KitiButler ใน LINE",
+    "",
+    "▸ สร้างงาน",
+    "#งาน ชื่องาน",
+    "กำหนด: 25/12/2026 18:00   (ไม่บังคับ)",
+    "ผู้รับผิดชอบ: ชื่อสมาชิก   (เฉพาะงานครอบครัว)",
+    "• กำหนด: วันนี้/พรุ่งนี้/มะรืน + เวลา, หรือ 15:00 เฉย ๆ, ไม่ใส่ = พรุ่งนี้ 09:00",
+    "• ผู้รับผิดชอบ: ฉัน / ทุกคน / ชื่อสมาชิก",
+    "",
+    "▸ เก็บไฟล์",
+    "ส่งไฟล์หรือรูปหาบอทโดยตรง = เก็บเข้าคลังของฉัน",
+    "ส่งในกลุ่มครอบครัว = เก็บเข้าคลังครอบครัว",
+    "รูปในกลุ่ม: ตอบกลับที่รูปนั้นว่า  #เก็บ",
+    "",
+    "▸ เปลี่ยนชื่อไฟล์ล่าสุด",
+    "#ชื่อไฟล์ ชื่อใหม่",
+  ];
+  if (APP_PUBLIC_URL) {
+    lines.push("", `▸ คู่มือแบบเต็ม: ${APP_PUBLIC_URL}/help`);
+  }
+  return lines.join("\n");
+}
 const PENDING_IMAGE_TTL_MS = 24 * 60 * 60 * 1000;
 
 function json(body: unknown, status = 200) {
@@ -196,6 +231,11 @@ async function handleEvent(event: LineWebhookEvent): Promise<void> {
     } else if (event.type === "message" && m) {
       if (m.type === "text" && typeof m.text === "string") {
         const t = m.text.trim();
+        if (MENU_KEYWORDS.has(t.toLowerCase())) {
+          await replyWith(event, menuText());
+          await markProcessed(eventId, "done");
+          return;
+        }
         if (KEEP_EXACT.has(t) || t.startsWith("#เก็บ")) {
           runBackground(handleKeepImage(event, eventId));
           return;
