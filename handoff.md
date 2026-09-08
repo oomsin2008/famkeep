@@ -1,12 +1,17 @@
 # KitiButler Handoff
 
-Last updated: 2026-09-08
+Last updated: 2026-09-08 (session 3)
 
 Renamed FamKeep -> KitiButler on 2026-09-08: in-app strings, wordmark, icons,
 package name, Vercel domain and GitHub repo are all cut over. Supabase project
 ref, pg_cron job names and the `famkeep_worker_secret` vault key are
 deliberately left unchanged. The local working directory is still named
 `famkeep`.
+
+Edge functions after session 3: `line-webhook` v20, `line-worker` v14
+(both `verify_jwt: false`, pinned in `supabase/config.toml`).
+Migrations applied to remote via MCP through `20260908140000`.
+LINE rich menu is live and set as the default for all users.
 
 Repo:
 
@@ -33,6 +38,107 @@ https://github.com/oomsin2008/kitibutler
 ```
 
 ## Current User Request / State
+
+### Session 3 (2026-09-08) — rebrand + LINE flow + filters
+
+18 commits, `c40ddf6`..`18131a4`, all pushed. GitHub pushes were slow/failing
+all session (intermittent github.com:443 connectivity) — commits are local-safe,
+edge deploys go straight from the working tree so they don't wait on git.
+
+**Rebrand FamKeep -> KitiButler** (`c40ddf6`, `51770d9`, `f3e69e3`)
+- Strings, wordmark ("KitiButler"), `/help` copy, `package.json` name, docs.
+- Brand art: `public/brand/kitibutler-logo.png` + `src/app/{icon,apple-icon,
+  favicon}` regenerated from the AI-butler logo (`AI Butler (Logo1).png`,
+  gitignored) via ffmpeg. favicon.ico must embed an RGBA PNG or turbopack's
+  build fails ("The PNG is not in RGBA format").
+- `supabase/config.toml`: added `[functions.line-webhook]` / `[functions.
+  line-worker]` `verify_jwt = false` so a plain `functions deploy` keeps it off.
+- External cutover done by the user: Vercel domain `kitibutler.vercel.app`
+  (primary, old removed), Vercel project renamed, GitHub repo renamed
+  `oomsin2008/kitibutler` + `git remote set-url`, Supabase Auth Site URL +
+  Redirect URLs, Edge secret `APP_PUBLIC_URL`. LINE Login callback needed no
+  change (custom:line calls back to `<ref>.supabase.co/auth/v1/callback`).
+- LINE channel access token was pasted into the session -> user reissued it,
+  updated the `LINE_CHANNEL_ACCESS_TOKEN` Supabase secret, redeployed both fns.
+- Deliberately NOT renamed: supabase project ref, pg_cron jobs, vault secret
+  `famkeep_worker_secret`, local dir, memory-file slugs.
+
+**Profile / nav** (`e34b7a3`, `ba7fda6`, `07c9284`)
+- Top-nav avatar shows the LINE profile picture (`CurrentUserProvider` +
+  `NavAvatar`, client-fetched), falls back to the generic icon.
+- Settings profile card: email line removed (LINE Login returns no email; not
+  applying for the permission).
+- Logo / "KitiButler" wordmark top-left now links to `/help` (home stays in the
+  nav). aria-label -> "KitiButler คู่มือการใช้งาน".
+
+**Tasks multi-select** (`c47f29c`) — same pattern as the Locker. "เลือก" mode,
+checkboxes, เลือกทั้งหมด, bulk "ลบ (N)" one-tap confirm. `deleteTasksAction`
+loops `soft_delete_task`. Works for private + family tasks. `TaskRow` gained
+`selectMode`/`selected`/`onToggleSelect`; in select mode the row is a toggle
+button, not a link.
+
+**/help + rich menu + เมนู** (`efb40cb`, `2666a33`)
+- `src/app/help/page.tsx` — static, no auth gate (builds `○`). #งาน syntax,
+  file saving, `#ชื่อไฟล์`, reminders, `ไอดี`, `เมนู`.
+- `scripts/line-rich-menu/` — `rich-menu.json` (6 cells 2x3: หน้าหลัก /
+  งานทั้งหมด / ปฏิทิน / คลังไฟล์ = uri; สร้างงาน = message `#งาน`;
+  วิธีใช้งาน = message `เมนู`), `rich-menu.jpg` (2500x1686), `deploy.mjs`
+  (delete existing -> create -> upload image -> set default). Deployed live;
+  run `deploy.mjs` again with `LINE_CHANNEL_ACCESS_TOKEN` to change it.
+- webhook: `เมนู`/`menu`/`วิธีใช้`/`help`/`?` -> `menuText()` full command list.
+
+**LINE task flow** (`ccaaeca`, `7e32736`) + migration `20260908120000`
+- `create_task_from_line` now auto-inserts an `at_due_time` reminder (slot 1),
+  so every #งาน task pings at its due time. Removable in the web app.
+- `set_task_lifecycle_from_line(task_id, actor_profile_id, status)` — new,
+  service_role, `can_access_task` gate. Backs a "เสร็จแล้ว" postback button
+  (`data: done:<taskId>`) on `reminderFlex` ONLY (not `taskCreatedFlex` — the
+  user wanted it on the reminder bubble only). webhook handles
+  `event.type === "postback"` in `handlePostback`.
+- Reverses the old "no in-LINE task-complete buttons" decision, at user request.
+
+**#งาน voice parsing** (`1d36754`, `74c1e3d`, `315dc0b`) + migration `20260908140000`
+- Type `#งาน`, dictate the rest: one line, no ":", Thai-word numbers.
+- `parseNganCommand` splits fields inline: `กำหนด`/`วันที่`/`เวลา` (เวลา is
+  guarded — must be followed by a time token) and
+  `ผู้รับผิดชอบ`/`ผู้รับ`/`มอบหมาย(ให้)`, any order, keyword ignored if it's the
+  first word. Multi-line + ":" still works.
+- `parseTimeOfDay`: `H นาฬิกา [MM]`, `H[:MM] am/pm`, `บ่าย N [โมง]`,
+  `N โมงเย็น`/`เย็น N`, `N ทุ่ม` (`ทุ่มนึง`), `ตี N`, `N โมงเช้า`/`เช้า N`,
+  `N โมง` (6-11 = morning), `เที่ยง`/`เที่ยงคืน`, trailing `ครึ่ง` -> :30,
+  Thai-word numbers 1-11.
+- `resolve_family_member_by_name` retries space-insensitively (STT splits names).
+- 29 tests in `supabase/functions/_shared/parse-ngan.test.ts`.
+
+**Calendar + `ไอดี`** (`f8ce1af`, `01f6333`)
+- Calendar mobile: `สัปดาห์ / เดือน` toggle; month = compact one-dot-per-day
+  grid (`MobileMonthGrid`). Desktop unchanged. `dominantStatus` moved to
+  `lib/tasks.ts`.
+- `ไอดี` / `id` / `ไลน์ไอดี` DM to the bot (1:1 only) -> replies with the
+  sender's LINE user ID, for family onboarding (the id isn't visible anywhere
+  else). In a group -> "1:1 only" note.
+
+**3-way ownership filter** (`18131a4`, `e2db732`)
+- New `OwnershipFilter = "all" | Workspace` in `lib/types.ts`.
+- Tasks: default filter `all` -> `private`.
+- Locker: adds a "ทั้งหมด" tab (was private/family only). `FilesProvider`
+  `lockerTab` widened to `OwnershipFilter`.
+- Calendar: gains the 3-way filter, sharing state with the Tasks page
+  (`useTasks().filter`). Tabs in-page on mobile, in `TopNavContextTabs` on
+  desktop.
+- `/help` #งาน section rewritten for the voice syntax.
+
+**Pending / needs the user**
+- `18131a4` Vercel deploy (calendar filter) — pushed, deploying at handoff time.
+  User tested before it landed and saw no filtering; that was expected.
+- Confirm the LINE **Login** channel is "Published" — otherwise family members
+  who aren't channel admins/testers can't sign in. (Console -> LINE Login
+  channel -> status badge; "Publish" button; usually no review.)
+- Confirm the reissued LINE token is the one now in the Supabase secret.
+- Family onboarding: share the bot link -> each member signs in ->
+  each DMs `ไอดี` -> owner adds them in ตั้งค่า -> ครอบครัว -> add bot to the
+  family LINE group -> approve it in ตั้งค่า -> การเชื่อมต่อ LINE.
+- DB state: 1 family workspace (2 members), 1 family task, 5 private tasks.
 
 ### Session 2h (2026-09-07) — Locker: multi-select
 
