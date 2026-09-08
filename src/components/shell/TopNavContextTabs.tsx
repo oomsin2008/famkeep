@@ -5,9 +5,10 @@ import { usePathname } from "next/navigation";
 import { useLockerTabControls } from "@/components/providers/FilesProvider";
 import { useTaskFilterControls } from "@/components/providers/TasksProvider";
 import type { TaskFilter } from "@/components/providers/TasksProvider";
-import type { Workspace } from "@/lib/types";
+import type { OwnershipFilter } from "@/lib/types";
 
-const LOCKER_TABS: { key: Workspace; label: string; tone: string }[] = [
+const LOCKER_TABS: { key: OwnershipFilter; label: string; tone: string }[] = [
+  { key: "all", label: "ทั้งหมด", tone: "bg-primary-soft text-primary-strong" },
   { key: "private", label: "ของฉัน", tone: "bg-private-tint text-private-press" },
   { key: "family", label: "ครอบครัว", tone: "bg-family-tint text-family-press" },
 ];
@@ -30,8 +31,8 @@ function shell(children: ReactNode) {
 }
 
 /**
- * Ownership tabs shown inside the desktop top nav: the Locker workspace tab on
- * /locker, the task filter on /tasks. State lives in the layout-level providers,
+ * Ownership tabs shown inside the desktop top nav: the Locker tab on /locker,
+ * the task filter on /tasks and /calendar (shared). State lives in the providers,
  * so this only relocates the control. Renders nothing on other routes, off its
  * provider, or below the lg breakpoint (smaller screens keep the tabs in-page).
  */
@@ -63,7 +64,7 @@ export function TopNavContextTabs() {
     );
   }
 
-  if (pathname === "/tasks" && tasks) {
+  if ((pathname === "/tasks" || pathname === "/calendar") && tasks) {
     return shell(
       TASK_TABS.map((tab) => {
         const active = tab.key === tasks.filter;

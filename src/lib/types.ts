@@ -6,6 +6,9 @@
 /** Ownership context. Locked read-only after task creation (rule 7). */
 export type Workspace = "private" | "family";
 
+/** 3-way ownership filter for the list views (Locker / Tasks / Calendar). */
+export type OwnershipFilter = "all" | Workspace;
+
 /** The four reminder presets. Hard max 2 active per task (rule 10). */
 export type ReminderPreset =
   | "at_due_time"

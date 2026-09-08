@@ -21,7 +21,7 @@ import { useToast } from "@/components/providers/ToastProvider";
 import { InlineDeleteButton } from "@/components/ui/InlineDeleteButton";
 import { deleteFileAction, deleteFilesAction } from "@/lib/files/file-actions";
 import { formatThaiDate } from "@/lib/datetime";
-import type { FileView, Workspace } from "@/lib/types";
+import type { FileView, OwnershipFilter } from "@/lib/types";
 import { ClayTile } from "@/components/ui/ClayTile";
 import { FileCard } from "./FileCard";
 import { UploadImageDialog } from "./UploadImageDialog";
@@ -34,7 +34,8 @@ import {
   formatFileSize,
 } from "./presentation";
 
-const TABS: { key: Workspace; label: string }[] = [
+const TABS: { key: OwnershipFilter; label: string }[] = [
+  { key: "all", label: "ทั้งหมด" },
   { key: "private", label: "ของฉัน" },
   { key: "family", label: "ครอบครัว" },
 ];
@@ -130,7 +131,7 @@ export function LockerView({
   }
 
   const visible = sortFiles(
-    files.filter((f) => f.workspace === lockerTab),
+    files.filter((f) => lockerTab === "all" || f.workspace === lockerTab),
     sortField,
     sortDir,
   );
@@ -181,11 +182,18 @@ export function LockerView({
     setSortDir(DEFAULT_DIR[field]);
   }
 
-  const title = lockerTab === "private" ? "ของฉัน" : (familyName ?? "ครอบครัว");
+  const title =
+    lockerTab === "all"
+      ? "คลังไฟล์"
+      : lockerTab === "private"
+        ? "ของฉัน"
+        : (familyName ?? "ครอบครัว");
   const subtitle =
-    lockerTab === "private"
-      ? `${visible.length} ไฟล์ · เห็นได้เฉพาะคุณ`
-      : `สมาชิก ${familyMemberCount} คนเข้าถึงไฟล์ในคลังนี้ได้ · ${visible.length} ไฟล์`;
+    lockerTab === "all"
+      ? `${visible.length} ไฟล์ (ของฉัน + ครอบครัว)`
+      : lockerTab === "private"
+        ? `${visible.length} ไฟล์ · เห็นได้เฉพาะคุณ`
+        : `สมาชิก ${familyMemberCount} คนเข้าถึงไฟล์ในคลังนี้ได้ · ${visible.length} ไฟล์`;
 
   return (
     <div>
@@ -193,9 +201,11 @@ export function LockerView({
         {TABS.map((tab) => {
           const active = tab.key === lockerTab;
           const activeTone =
-            tab.key === "private"
-              ? "bg-private-tint text-private-press"
-              : "bg-family-tint text-family-press";
+            tab.key === "all"
+              ? "bg-primary-soft text-primary-strong"
+              : tab.key === "private"
+                ? "bg-private-tint text-private-press"
+                : "bg-family-tint text-family-press";
           return (
             <button
               key={tab.key}

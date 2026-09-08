@@ -8,12 +8,12 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { FileView, Workspace } from "@/lib/types";
+import type { FileView, OwnershipFilter } from "@/lib/types";
 
 interface FilesContextValue {
-  /** Active Locker workspace tab. Persists across navigation; defaults to private. */
-  lockerTab: Workspace;
-  setLockerTab: (workspace: Workspace) => void;
+  /** Active Locker ownership tab. Persists across navigation; defaults to private. */
+  lockerTab: OwnershipFilter;
+  setLockerTab: (tab: OwnershipFilter) => void;
   /** File currently shown in the detail modal, or null. */
   openedFile: FileView | null;
   /** Open the detail modal and switch the Locker tab to that file's workspace (readme §4). */
@@ -25,7 +25,7 @@ interface FilesContextValue {
 const FilesContext = createContext<FilesContextValue | null>(null);
 
 export function FilesProvider({ children }: { children: ReactNode }) {
-  const [lockerTab, setLockerTab] = useState<Workspace>("private");
+  const [lockerTab, setLockerTab] = useState<OwnershipFilter>("private");
   const [openedFile, setOpenedFile] = useState<FileView | null>(null);
 
   const openFile = useCallback((file: FileView) => {
@@ -64,8 +64,8 @@ export function useFiles(): FilesContextValue {
   return ctx;
 }
 
-/** Non-throwing read of the active Locker workspace, for shell chrome. */
-export function useLockerTab(): Workspace {
+/** Non-throwing read of the active Locker tab, for shell chrome. */
+export function useLockerTab(): OwnershipFilter {
   return useContext(FilesContext)?.lockerTab ?? "private";
 }
 

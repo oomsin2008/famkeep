@@ -16,6 +16,8 @@ import {
 } from "@/lib/calendar";
 import type { TaskView } from "@/lib/types";
 import { CalendarSkeleton } from "@/components/ui/Skeletons";
+import type { TaskFilter } from "@/components/providers/TasksProvider";
+import { TaskFilterTabs } from "@/components/tasks/TaskFilterTabs";
 import { MonthGrid } from "./MonthGrid";
 import { MobileMonthGrid } from "./MobileMonthGrid";
 import { WeekStrip } from "./WeekStrip";
@@ -40,13 +42,24 @@ function groupByDueDate(tasks: TaskView[]): Map<string, TaskView[]> {
 }
 
 export function CalendarView({ tasks }: { tasks: TaskView[] }) {
-  const { now } = useTasks();
+  const { now, filter, setFilter } = useTasks();
 
   if (!now) {
     return <CalendarSkeleton />;
   }
 
-  return <CalendarBody tasks={tasks} now={now} />;
+  const visible = tasks.filter(
+    (t) => filter === "all" || t.workspace === filter,
+  );
+
+  return (
+    <CalendarBody
+      tasks={visible}
+      now={now}
+      filter={filter}
+      onFilterChange={setFilter}
+    />
+  );
 }
 
 /**
@@ -58,7 +71,17 @@ export function CalendarView({ tasks }: { tasks: TaskView[] }) {
  *   full BE date so an off-range selection stays legible).
  * - Selecting any date re-centres both the month anchor and the week on it.
  */
-function CalendarBody({ tasks, now }: { tasks: TaskView[]; now: Date }) {
+function CalendarBody({
+  tasks,
+  now,
+  filter,
+  onFilterChange,
+}: {
+  tasks: TaskView[];
+  now: Date;
+  filter: TaskFilter;
+  onFilterChange: (f: TaskFilter) => void;
+}) {
   const today = todayKey(now);
   const [selectedDate, setSelectedDate] = useState(today);
   const [mobileView, setMobileView] = useState<MobileView>("week");
@@ -82,6 +105,9 @@ function CalendarBody({ tasks, now }: { tasks: TaskView[]; now: Date }) {
 
   return (
     <div>
+      <div className="mb-3 lg:hidden">
+        <TaskFilterTabs value={filter} onChange={onFilterChange} />
+      </div>
       <h1 className="text-[26px] font-semibold md:text-[32px]">ปฏิทิน</h1>
 
       <div className="mt-6 md:grid md:grid-cols-[1.6fr_1fr] md:items-start md:gap-7">

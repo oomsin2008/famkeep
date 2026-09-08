@@ -5,7 +5,7 @@ import {
   House,
   type Icon,
 } from "@phosphor-icons/react";
-import type { Workspace } from "@/lib/types";
+import type { OwnershipFilter } from "@/lib/types";
 
 export interface NavItem {
   href: string;
@@ -27,7 +27,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
  */
 export function navAccent(
   pathname: string,
-  lockerTab: Workspace,
+  lockerTab: OwnershipFilter,
 ): "private" | "family" {
   const inLocker = pathname === "/locker" || pathname.startsWith("/locker/");
   return inLocker && lockerTab === "family" ? "family" : "private";
