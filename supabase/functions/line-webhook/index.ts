@@ -99,6 +99,15 @@ const MENU_KEYWORDS = new Set([
   "?",
 ]);
 
+const ID_KEYWORDS = new Set([
+  "ไอดี",
+  "ไอดีของฉัน",
+  "ไลน์ไอดี",
+  "id",
+  "line id",
+  "my id",
+]);
+
 function menuText(): string {
   const lines = [
     "คำสั่ง KitiButler ใน LINE",
@@ -117,6 +126,9 @@ function menuText(): string {
     "",
     "▸ เปลี่ยนชื่อไฟล์ล่าสุด",
     "#ชื่อไฟล์ ชื่อใหม่",
+    "",
+    "▸ ดู LINE user ID ของตัวเอง (ให้เจ้าของครอบครัวเพิ่มเข้าครอบครัว)",
+    "พิมพ์  ไอดี",
   ];
   if (APP_PUBLIC_URL) {
     lines.push("", `▸ คู่มือแบบเต็ม: ${APP_PUBLIC_URL}/help`);
@@ -233,6 +245,17 @@ async function handleEvent(event: LineWebhookEvent): Promise<void> {
         const t = m.text.trim();
         if (MENU_KEYWORDS.has(t.toLowerCase())) {
           await replyWith(event, menuText());
+          await markProcessed(eventId, "done");
+          return;
+        }
+        if (ID_KEYWORDS.has(t.toLowerCase())) {
+          const uid = source?.type === "user" ? source.userId : null;
+          await replyWith(
+            event,
+            uid
+              ? `LINE user ID ของคุณ:\n${uid}\n\nส่งให้เจ้าของครอบครัวเพื่อเพิ่มคุณเข้าพื้นที่ครอบครัว (KitiButler › ตั้งค่า › ครอบครัว)`
+              : "ดู LINE user ID ได้จากแชท 1:1 กับบอทเท่านั้น ไม่ใช่ในกลุ่ม",
+          );
           await markProcessed(eventId, "done");
           return;
         }

@@ -46,9 +46,14 @@ export default function HelpPage() {
             <span className="font-semibold text-text">เข้าสู่ระบบด้วย LINE</span>{" "}
             หนึ่งครั้ง
           </li>
+          <li>งานส่วนตัวใช้ได้ทันที</li>
           <li>
-            งานส่วนตัวใช้ได้ทันที งานครอบครัวให้เจ้าของครอบครัวเชิญสมาชิก และ
-            เพิ่มบอทเข้ากลุ่ม LINE ของครอบครัว แล้วอนุมัติที่{" "}
+            เข้าครอบครัว: พิมพ์ <code className="text-text">ไอดี</code>{" "}
+            หาบอทในแชท 1:1 เพื่อดู LINE user ID ของคุณ แล้วส่งให้เจ้าของครอบครัว
+            เพิ่มคุณที่ <span className="font-semibold text-text">ตั้งค่า › ครอบครัว</span>
+          </li>
+          <li>
+            เจ้าของครอบครัว: เพิ่มบอทเข้ากลุ่ม LINE ของครอบครัว แล้วอนุมัติที่{" "}
             <Link href="/settings/line" className="font-semibold text-primary-strong underline">
               ตั้งค่า › การเชื่อมต่อ LINE
             </Link>

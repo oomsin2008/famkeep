@@ -74,7 +74,9 @@ export function AddMemberForm({ workspaceId }: { workspaceId: string }) {
         เพิ่มสมาชิกด้วย LINE user ID
       </label>
       <p className="text-[12.5px] text-text-2">
-        ผู้ใช้ต้องเคยเข้าสู่ระบบ KitiButler ด้วย LINE มาก่อน
+        ผู้ใช้ต้องเคยเข้าสู่ระบบ KitiButler ด้วย LINE มาก่อน ให้เขาพิมพ์{" "}
+        <span className="font-mono">ไอดี</span> หาบอทในแชท 1:1 เพื่อดู LINE user ID
+        แล้วส่งมาให้คุณ
       </p>
       <input
         id="member-line-id"
