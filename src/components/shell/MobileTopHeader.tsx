@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { MagnifyingGlass, User } from "@phosphor-icons/react";
 import { BrandMark } from "./BrandMark";
+import { NavAvatar } from "./NavAvatar";
 
 /** Plain header for top-level screens on mobile: brand + search + avatar.
  *  Shown only below the md breakpoint. */
@@ -25,9 +26,14 @@ export function MobileTopHeader() {
           aria-label="ตั้งค่า"
           className="flex size-11 items-center justify-center"
         >
-          <span className="flex size-8 items-center justify-center rounded-full bg-private-tint text-private shadow-soft ring-1 ring-white/60">
-            <User size={18} />
-          </span>
+          <NavAvatar
+            photoSize={32}
+            fallback={
+              <span className="flex size-8 items-center justify-center rounded-full bg-private-tint text-private shadow-soft ring-1 ring-white/60">
+                <User size={18} />
+              </span>
+            }
+          />
         </Link>
       </div>
     </header>

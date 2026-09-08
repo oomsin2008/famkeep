@@ -6,6 +6,7 @@ import { MagnifyingGlass, User } from "@phosphor-icons/react";
 import { useLockerTab } from "@/components/providers/FilesProvider";
 import { LinkPendingHint } from "@/components/ui/LinkPendingHint";
 import { BrandMark } from "./BrandMark";
+import { NavAvatar } from "./NavAvatar";
 import { TopNavContextTabs } from "./TopNavContextTabs";
 import { NAV_ITEMS, getActiveNavHref, navAccent } from "./nav-config";
 
@@ -61,9 +62,16 @@ export function DesktopTopNav() {
           <Link
             href="/settings"
             aria-label="ตั้งค่า"
-            className="fk-clay fk-clay-blue flex size-10 items-center justify-center rounded-full text-primary-strong"
+            className="flex size-10 items-center justify-center rounded-full"
           >
-            <User size={18} weight="duotone" />
+            <NavAvatar
+              photoSize={40}
+              fallback={
+                <span className="fk-clay fk-clay-blue flex size-10 items-center justify-center rounded-full text-primary-strong">
+                  <User size={18} weight="duotone" />
+                </span>
+              }
+            />
           </Link>
         </div>
       </nav>
