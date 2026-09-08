@@ -39,6 +39,26 @@ export function isOpenTask(task: Pick<Task, "lifecycleStatus">): boolean {
   return task.lifecycleStatus === "open";
 }
 
+/** Highest-urgency status wins a calendar day's single dot. A day holding both
+ *  an overdue and a done task shows only the overdue colour (documented). */
+const STATUS_PRIORITY: Record<TaskDisplayStatus, number> = {
+  overdue: 0,
+  duesoon: 1,
+  progress: 2,
+  done: 3,
+  cancelled: 4,
+};
+
+export function dominantStatus(
+  tasks: Pick<Task, "dueAt" | "lifecycleStatus">[],
+  now: Date,
+): TaskDisplayStatus | null {
+  if (tasks.length === 0) return null;
+  return tasks
+    .map((task) => deriveTaskStatus(task, now))
+    .sort((a, b) => STATUS_PRIORITY[a] - STATUS_PRIORITY[b])[0];
+}
+
 const OPEN_STATUS_RANK: Record<TaskDerivedStatus, number> = {
   overdue: 0,
   duesoon: 1,

@@ -4,16 +4,17 @@ import { CaretLeft, CaretRight } from "@phosphor-icons/react";
 import { formatThaiFullDate, formatThaiMonthYear } from "@/lib/datetime";
 import { dominantStatus } from "@/lib/tasks";
 import {
-  addDaysToKey,
   dateKeyToInstant,
+  monthAnchorKey,
   WEEKDAY_LABELS_TH,
   type CalendarDay,
+  type MonthAnchor,
 } from "@/lib/calendar";
 import type { TaskView } from "@/lib/types";
 import { STATUS_DOT_CLASSES } from "@/components/tasks/presentation";
 
-interface WeekStripProps {
-  weekStart: string;
+interface MobileMonthGridProps {
+  anchor: MonthAnchor;
   days: CalendarDay[];
   tasksByDate: Map<string, TaskView[]>;
   today: string;
@@ -27,8 +28,10 @@ interface WeekStripProps {
 const NAV_BUTTON =
   "grid size-11 place-items-center rounded-full border border-border/60 bg-surface-glass text-text-2 shadow-soft transition-colors hover:text-text";
 
-export function WeekStrip({
-  weekStart,
+/** Compact month grid for mobile: one dominant-status dot per day, no task
+ *  title chips (too narrow). Tapping a day opens its panel like the week strip. */
+export function MobileMonthGrid({
+  anchor,
   days,
   tasksByDate,
   today,
@@ -37,21 +40,20 @@ export function WeekStrip({
   onPrev,
   onNext,
   onSelectDate,
-}: WeekStripProps) {
-  // Label by the week's midpoint so a two-month week reads as its dominant month.
-  const weekLabel = formatThaiMonthYear(
-    dateKeyToInstant(addDaysToKey(weekStart, 3)),
+}: MobileMonthGridProps) {
+  const monthLabel = formatThaiMonthYear(
+    dateKeyToInstant(monthAnchorKey(anchor)),
   );
 
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h2 className="text-base font-semibold">{weekLabel}</h2>
+        <h2 className="text-base font-semibold">{monthLabel}</h2>
         <div className="flex gap-1">
           <button
             type="button"
             onClick={onPrev}
-            aria-label="สัปดาห์ก่อนหน้า"
+            aria-label="เดือนก่อนหน้า"
             className={NAV_BUTTON}
           >
             <CaretLeft size={18} />
@@ -59,7 +61,7 @@ export function WeekStrip({
           <button
             type="button"
             onClick={onNext}
-            aria-label="สัปดาห์ถัดไป"
+            aria-label="เดือนถัดไป"
             className={NAV_BUTTON}
           >
             <CaretRight size={18} />
@@ -67,8 +69,17 @@ export function WeekStrip({
         </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-7 gap-1">
-        {days.map((day, index) => {
+      <div className="mt-3 grid grid-cols-7 gap-y-1">
+        {WEEKDAY_LABELS_TH.map((label) => (
+          <div
+            key={label}
+            className="pb-1 text-center text-xs font-semibold text-text-2"
+          >
+            {label}
+          </div>
+        ))}
+
+        {days.map((day) => {
           const status = dominantStatus(tasksByDate.get(day.key) ?? [], now);
           const isSelected = day.key === selectedDate;
           const isToday = day.key === today;
@@ -80,14 +91,8 @@ export function WeekStrip({
               onClick={() => onSelectDate(day.key)}
               aria-label={formatThaiFullDate(dateKeyToInstant(day.key))}
               aria-pressed={isSelected}
-              className={[
-                "flex min-h-[64px] flex-col items-center justify-center gap-1 rounded-standard py-1.5 transition-colors",
-                isSelected ? "bg-primary-soft/60" : "hover:bg-surface-muted/60",
-              ].join(" ")}
+              className="flex min-h-[46px] flex-col items-center justify-center gap-1 rounded-standard py-1 transition-colors hover:bg-surface-muted/60"
             >
-              <span className="text-xs text-text-2">
-                {WEEKDAY_LABELS_TH[index]}
-              </span>
               <span
                 className={[
                   "flex size-8 items-center justify-center rounded-full text-sm font-bold",
@@ -95,13 +100,17 @@ export function WeekStrip({
                     ? "fk-clay fk-clay-blue text-primary-strong"
                     : isToday
                       ? "text-primary-strong ring-1 ring-inset ring-primary/50"
-                      : "text-text",
+                      : day.inMonth
+                        ? "text-text"
+                        : "text-text-soft/60",
                 ].join(" ")}
               >
                 {day.day}
               </span>
               <span
-                className={`size-1.5 rounded-full ${status ? STATUS_DOT_CLASSES[status] : "bg-transparent"}`}
+                className={`size-1.5 rounded-full ${
+                  status ? STATUS_DOT_CLASSES[status] : "bg-transparent"
+                }`}
               />
             </button>
           );

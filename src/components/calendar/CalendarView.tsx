@@ -17,9 +17,12 @@ import {
 import type { TaskView } from "@/lib/types";
 import { CalendarSkeleton } from "@/components/ui/Skeletons";
 import { MonthGrid } from "./MonthGrid";
+import { MobileMonthGrid } from "./MobileMonthGrid";
 import { WeekStrip } from "./WeekStrip";
 import { DayPanel } from "./DayPanel";
 import { UpcomingList } from "./UpcomingList";
+
+type MobileView = "week" | "month";
 
 /** Tasks keyed by their Bangkok-local due date, each day sorted by due datetime asc. */
 function groupByDueDate(tasks: TaskView[]): Map<string, TaskView[]> {
@@ -58,6 +61,7 @@ export function CalendarView({ tasks }: { tasks: TaskView[] }) {
 function CalendarBody({ tasks, now }: { tasks: TaskView[]; now: Date }) {
   const today = todayKey(now);
   const [selectedDate, setSelectedDate] = useState(today);
+  const [mobileView, setMobileView] = useState<MobileView>("week");
   const [monthAnchor, setMonthAnchor] = useState<MonthAnchor>(() =>
     monthAnchorOf(today),
   );
@@ -95,18 +99,55 @@ function CalendarBody({ tasks, now }: { tasks: TaskView[]; now: Date }) {
           />
         </div>
 
-        <div data-calendar="week" className="fk-card p-4 md:hidden">
-          <WeekStrip
-            weekStart={weekStart}
-            days={weekDays}
-            tasksByDate={tasksByDate}
-            today={today}
-            selectedDate={selectedDate}
-            now={now}
-            onPrev={() => setWeekStart((w) => shiftWeek(w, -1))}
-            onNext={() => setWeekStart((w) => shiftWeek(w, 1))}
-            onSelectDate={selectDate}
-          />
+        <div className="fk-card p-4 md:hidden">
+          <div className="mb-3 inline-flex rounded-pill border border-border/70 bg-surface p-1">
+            {(["week", "month"] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setMobileView(v)}
+                aria-pressed={mobileView === v}
+                className={[
+                  "min-h-9 rounded-pill px-4 text-[13px] font-semibold transition-colors",
+                  mobileView === v
+                    ? "bg-primary-soft text-primary-strong"
+                    : "text-text-2 hover:text-text",
+                ].join(" ")}
+              >
+                {v === "week" ? "สัปดาห์" : "เดือน"}
+              </button>
+            ))}
+          </div>
+
+          {mobileView === "week" ? (
+            <div data-calendar="week">
+              <WeekStrip
+                weekStart={weekStart}
+                days={weekDays}
+                tasksByDate={tasksByDate}
+                today={today}
+                selectedDate={selectedDate}
+                now={now}
+                onPrev={() => setWeekStart((w) => shiftWeek(w, -1))}
+                onNext={() => setWeekStart((w) => shiftWeek(w, 1))}
+                onSelectDate={selectDate}
+              />
+            </div>
+          ) : (
+            <div data-calendar="month">
+              <MobileMonthGrid
+                anchor={monthAnchor}
+                days={monthDays}
+                tasksByDate={tasksByDate}
+                today={today}
+                selectedDate={selectedDate}
+                now={now}
+                onPrev={() => setMonthAnchor((a) => shiftMonth(a, -1))}
+                onNext={() => setMonthAnchor((a) => shiftMonth(a, 1))}
+                onSelectDate={selectDate}
+              />
+            </div>
+          )}
         </div>
 
         <div className="md:fk-glass md:sticky md:top-24 md:rounded-panel md:p-5">
