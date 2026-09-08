@@ -10,7 +10,7 @@ import { NavAvatar } from "./NavAvatar";
 export function MobileTopHeader() {
   return (
     <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border/70 bg-surface-glass px-4 py-3.5 backdrop-blur-xl md:hidden">
-      <Link href="/" aria-label="KitiButler หน้าหลัก">
+      <Link href="/help" aria-label="KitiButler คู่มือการใช้งาน">
         <BrandMark size={16} />
       </Link>
       <div className="flex items-center gap-3.5">
