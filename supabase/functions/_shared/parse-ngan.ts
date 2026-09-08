@@ -11,7 +11,9 @@
 //   วันนี้ / พรุ่งนี้ / มะรืน(นี้)  [+ any time below]
 //   HH:mm | H นาฬิกา [MM] | H นาฬิกาครึ่ง | H[:MM] AM/PM
 //   บ่าย N [โมง] | N โมงเย็น | เย็น N | N ทุ่ม | ตี N | N โมงเช้า | เช้า N
-//   เที่ยง | เที่ยงคืน   (+ "ครึ่ง" suffix anywhere -> :30)
+//   N โมง (6-11 -> morning) | เที่ยง | เที่ยงคืน  (+ "ครึ่ง" anywhere -> :30)
+// "เวลา" only counts as a due keyword when a time follows it (it's a common
+// word inside titles); "กำหนด" / "วันที่" don't need that.
 //   a bare time already past today -> tomorrow; no time -> 09:00
 // 4-digit years >= 2400 are treated as Buddhist Era and converted.
 
@@ -30,6 +32,28 @@ export interface NganParseErr {
 }
 export type NganParseResult = NganParseOk | NganParseErr;
 
+const THAI_NUM: Record<string, number> = {
+  หนึ่ง: 1,
+  เอ็ด: 1,
+  นึง: 1,
+  สอง: 2,
+  สาม: 3,
+  สี่: 4,
+  ห้า: 5,
+  หก: 6,
+  เจ็ด: 7,
+  แปด: 8,
+  เก้า: 9,
+  สิบ: 10,
+  สิบเอ็ด: 11,
+  สิบเอด: 11,
+};
+
+// Longer Thai words first so "สิบเอ็ด" wins over "สิบ".
+const NUM_WORDS = Object.keys(THAI_NUM).sort((a, b) => b.length - a.length);
+// A number token: 1-2 Arabic digits or a spelled-out Thai number.
+const NUM = `(\\d{1,2}|${NUM_WORDS.join("|")})`;
+
 const DUE_KEYS = ["กำหนด", "กําหนด", "วันที่", "เวลา", "due"];
 const ASSIGNEE_KEYS = [
   "ผู้รับผิดชอบ",
@@ -39,13 +63,27 @@ const ASSIGNEE_KEYS = [
   "assignee",
 ];
 
+// "เวลา" is a common word inside titles, so it only counts as a due keyword when
+// an actual time follows it. The other due keywords are distinctive enough.
+const GUARDED_DUE_KEYS = new Set(["เวลา"]);
+const TIME_LOOKAHEAD = new RegExp(
+  "^[:：\\s]*(?:" +
+    "[\\d๐-๙]" +
+    "|บ่าย|ตี|ทุ่ม|เที่ยง" +
+    "|(?:เย็น|เช้า)\\s*(?:[\\d๐-๙]|" + NUM_WORDS.join("|") + ")" +
+    "|พรุ่งนี้|พรุ่ง|วันนี้|มะรืน" +
+    "|(?:" + NUM_WORDS.join("|") + ")\\s*(?:ทุ่ม|โมง|นาฬิกา)" +
+    ")",
+);
+
 /** Collapse runs of whitespace (incl. newlines) to a single space and trim. */
 function tidy(s: string): string {
   return s.replace(/\s+/g, " ").trim();
 }
 
 /** First index in `body` where any keyword begins with non-space content before
- *  it (so a leading "กำหนดการประชุม" stays part of the title). -1 if none. */
+ *  it (so a leading "กำหนดการประชุม" stays part of the title). Guarded keywords
+ *  must also be followed by a time. -1 if none. */
 function firstKeyword(body: string, keys: string[]): number {
   let best = -1;
   for (const key of keys) {
@@ -53,10 +91,12 @@ function firstKeyword(body: string, keys: string[]): number {
     while (true) {
       const at = body.indexOf(key, from);
       if (at < 0) break;
-      if (body.slice(0, at).trim().length > 0 && (best < 0 || at < best)) {
-        best = at;
-      }
       from = at + key.length;
+      if (body.slice(0, at).trim().length === 0) continue;
+      if (GUARDED_DUE_KEYS.has(key) && !TIME_LOOKAHEAD.test(body.slice(from))) {
+        continue;
+      }
+      if (best < 0 || at < best) best = at;
     }
   }
   return best;
@@ -137,29 +177,6 @@ export interface DueParseResult {
   error: boolean;
 }
 
-const THAI_NUM: Record<string, number> = {
-  หนึ่ง: 1,
-  เอ็ด: 1,
-  นึง: 1,
-  สอง: 2,
-  สาม: 3,
-  สี่: 4,
-  ห้า: 5,
-  หก: 6,
-  เจ็ด: 7,
-  แปด: 8,
-  เก้า: 9,
-  สิบ: 10,
-  สิบเอ็ด: 11,
-  สิบเอด: 11,
-};
-
-// A number token: 1-2 Arabic digits or a spelled-out Thai number. Longer Thai
-// words first so "สิบเอ็ด" wins over "สิบ".
-const NUM = `(\\d{1,2}|${
-  Object.keys(THAI_NUM).sort((a, b) => b.length - a.length).join("|")
-})`;
-
 function toNum(tok: string | undefined): number | null {
   if (!tok) return null;
   if (/^\d{1,2}$/.test(tok)) return parseInt(tok, 10);
@@ -222,6 +239,13 @@ export function parseTimeOfDay(s: string): { hh: number; mm: number } | null {
   if (m) {
     const n = toNum(m[1] ?? m[2]);
     return n === null ? null : at(n);
+  }
+
+  // bare "N โมง" (no เช้า/เย็น): treat 6-11 as morning, others too ambiguous.
+  m = t.match(new RegExp(`${NUM}\\s*โมง`));
+  if (m) {
+    const n = toNum(m[1]);
+    if (n !== null && n >= 6 && n <= 11) return at(n);
   }
 
   m = t.match(/(\d{1,2})[:.](\d{2})/);

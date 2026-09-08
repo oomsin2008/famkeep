@@ -98,13 +98,32 @@ Deno.test("keyword as the first word stays part of the title", () => {
   }
 });
 
-Deno.test('"เวลา" works like "กำหนด"', () => {
+Deno.test('"เวลา" works like "กำหนด" when a time follows', () => {
   const r = parseNganCommand("#งาน ประชุมทีม เวลา บ่าย 3");
   assertEquals(r.ok, true);
   if (r.ok) {
     assertEquals(r.title, "ประชุมทีม");
     assertEquals(r.dueRaw, "บ่าย 3");
   }
+});
+
+Deno.test('"เวลา" inside a title is not a keyword', () => {
+  const r = parseNganCommand("#งาน ปรับเวลานาฬิกาข้อมือ");
+  assertEquals(r.ok, true);
+  if (r.ok) {
+    assertEquals(r.title, "ปรับเวลานาฬิกาข้อมือ");
+    assertEquals(r.dueRaw, null);
+  }
+});
+
+Deno.test('"เวลา 10 โมง" splits and parses', () => {
+  const r = parseNganCommand("#งาน จองห้อง เวลา 10 โมง");
+  assertEquals(r.ok, true);
+  if (r.ok) {
+    assertEquals(r.title, "จองห้อง");
+    assertEquals(r.dueRaw, "10 โมง");
+  }
+  assertEquals(parseThaiDue("10 โมง", NOW).iso, "2026-09-04T03:00:00.000Z");
 });
 
 Deno.test("assignee before due, inline, no colon", () => {
