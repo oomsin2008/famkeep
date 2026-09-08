@@ -194,6 +194,37 @@ export interface BulkDeleteResult {
   error: string | null;
 }
 
+/** Soft-delete the given tasks, one `soft_delete_task` call each. Ids the caller
+ *  cannot access are counted as failures. */
+export async function deleteTasksAction(
+  taskIds: string[],
+): Promise<BulkDeleteResult> {
+  const ids = [...new Set(taskIds.filter(Boolean))];
+  if (ids.length === 0) return { ok: true, count: 0, error: null };
+
+  const supabase = await getAuthedClient();
+  if (!supabase) {
+    return { ok: false, count: 0, error: REASON_MESSAGES.not_authenticated };
+  }
+
+  let deleted = 0;
+  let failed = 0;
+  for (const id of ids) {
+    const { data, error } = await supabase.rpc("soft_delete_task", {
+      p_task_id: id,
+    });
+    if (!error && !firstRow(data)?.blocked_reason) deleted += 1;
+    else failed += 1;
+  }
+
+  revalidateTaskRoutes();
+  return {
+    ok: failed === 0,
+    count: deleted,
+    error: failed > 0 ? "บางรายการลบไม่สำเร็จ กรุณาลองอีกครั้ง" : null,
+  };
+}
+
 /** Soft-delete every task (any status) in the caller's private workspace. */
 export async function deleteAllMyTasksAction(): Promise<BulkDeleteResult> {
   const supabase = await getAuthedClient();
