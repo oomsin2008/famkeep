@@ -126,6 +126,7 @@ function buildMessage(info: DispatchInfo): LineFlexMessage {
     headLabel,
     tone,
     link,
+    taskId: info.task_id ?? null,
   });
 }
 

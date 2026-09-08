@@ -170,6 +170,7 @@ export interface LineWebhookEvent {
     quotedMessageId?: string;
     contentProvider?: { type: "line" | "external"; originalContentUrl?: string };
   };
+  postback?: { data?: string; params?: Record<string, string> };
 }
 
 export interface LineWebhookBody {

@@ -258,12 +258,66 @@ async function handleEvent(event: LineWebhookEvent): Promise<void> {
           "ยังไม่รองรับไฟล์ประเภทนี้ ตอนนี้เก็บได้เฉพาะรูปภาพและเอกสาร",
         );
       }
+    } else if (event.type === "postback") {
+      await handlePostback(event, eventId);
+      return;
     }
     await markProcessed(eventId, "done");
   } catch (err) {
     console.error("processing error", (err as Error).message);
     await markProcessed(eventId, "error");
   }
+}
+
+/** "เสร็จแล้ว" button on a task / reminder bubble: data = "done:<taskId>". */
+async function handlePostback(
+  event: LineWebhookEvent,
+  eventId: string,
+): Promise<void> {
+  const data = event.postback?.data ?? "";
+  if (!data.startsWith("done:")) {
+    await markProcessed(eventId, "done");
+    return;
+  }
+
+  const taskId = data.slice("done:".length).trim();
+  const lineUserId = event.source?.userId ?? null;
+  if (!taskId || !lineUserId) {
+    await replyWith(event, HINT_NOT_LINKED);
+    await markProcessed(eventId, "done");
+    return;
+  }
+
+  const { data: userRows } = await admin.rpc("resolve_line_user", {
+    p_line_user_id: lineUserId,
+  });
+  const profileId = firstRow(userRows)?.profile_id ?? null;
+  if (!profileId) {
+    await replyWith(event, HINT_NOT_LINKED);
+    await markProcessed(eventId, "done");
+    return;
+  }
+
+  const { data: res, error } = await admin.rpc("set_task_lifecycle_from_line", {
+    p_task_id: taskId,
+    p_actor_profile_id: profileId,
+    p_status: "done",
+  });
+  if (error) {
+    await replyWith(event, "ทำเครื่องหมายไม่สำเร็จ รบกวนลองใหม่");
+    await markProcessed(eventId, "error");
+    return;
+  }
+
+  const reason = firstRow(res)?.blocked_reason ?? null;
+  if (reason === "no_task_access") {
+    await replyWith(event, "ไม่พบงานนี้ หรือคุณไม่มีสิทธิ์");
+  } else if (reason) {
+    await replyWith(event, HINT_NOT_LINKED);
+  } else {
+    await replyWith(event, "ทำเครื่องหมายว่าเสร็จแล้ว ✓");
+  }
+  await markProcessed(eventId, "done");
 }
 
 function parseRenameCommand(text: string): string | null {
@@ -483,6 +537,7 @@ async function handleTextMessage(
       assigneeName,
       context: isFamily ? "family" : "private",
       link: taskLink(crow?.task_id),
+      taskId: crow?.task_id ?? null,
     }),
   );
 }

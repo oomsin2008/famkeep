@@ -193,6 +193,46 @@ function linkFooter(
   };
 }
 
+/** Footer for a task bubble: "เปิดงานนี้" (when a link exists) plus a "เสร็จแล้ว"
+ *  postback button (when a taskId exists), side by side. */
+function taskFooter(
+  link: string | null,
+  taskId: string | null,
+  color: string,
+): Box | null {
+  const buttons: Box[] = [];
+  if (link) {
+    buttons.push({
+      type: "button",
+      style: "primary",
+      color,
+      height: "sm",
+      action: { type: "uri", label: "เปิดงานนี้", uri: link },
+    });
+  }
+  if (taskId) {
+    buttons.push({
+      type: "button",
+      style: "secondary",
+      height: "sm",
+      action: {
+        type: "postback",
+        label: "เสร็จแล้ว",
+        data: `done:${taskId}`,
+        displayText: "เสร็จแล้ว",
+      },
+    });
+  }
+  if (buttons.length === 0) return null;
+  return {
+    type: "box",
+    layout: buttons.length > 1 ? "horizontal" : "vertical",
+    spacing: "sm",
+    paddingAll: "10px",
+    contents: buttons,
+  };
+}
+
 function bubble(parts: { header?: Box; body: Box; footer?: Box | null }): Box {
   const b: Box = { type: "bubble", size: "kilo", body: parts.body };
   if (parts.header) b.header = parts.header;
@@ -279,6 +319,7 @@ export function taskCreatedFlex(o: {
   assigneeName?: string | null;
   context: FlexContext;
   link: string | null;
+  taskId: string | null;
 }): LineFlexMessage {
   const rows: Box[] = [
     text(o.title, { weight: "bold", size: "md", color: T.ink }),
@@ -293,7 +334,7 @@ export function taskCreatedFlex(o: {
     bubble({
       header: header("เพิ่มงานใหม่แล้ว", T.progress),
       body: body(rows),
-      footer: linkFooter("เปิดงานนี้", o.link, T.progress.ink),
+      footer: taskFooter(o.link, o.taskId, T.progress.ink),
     }),
   );
 }
@@ -304,6 +345,7 @@ export function reminderFlex(o: {
   headLabel: string;
   tone: "overdue" | "duesoon";
   link: string | null;
+  taskId: string | null;
 }): LineFlexMessage {
   const tone = T[o.tone];
   const rows: Box[] = [
@@ -317,7 +359,7 @@ export function reminderFlex(o: {
     bubble({
       header: header(o.headLabel, tone),
       body: body(rows),
-      footer: linkFooter("เปิดงานนี้", o.link, tone.ink),
+      footer: taskFooter(o.link, o.taskId, tone.ink),
     }),
   );
 }
