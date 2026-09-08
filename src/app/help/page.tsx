@@ -28,7 +28,7 @@ export default function HelpPage() {
         วิธีใช้งาน KitiButler
       </h1>
       <p className="mt-1.5 text-[14px] text-text-2">
-        KitiButler คือพื้นที่ของครอบครัวสำหรับเก็บงาน ไฟล์ และปฏิทินร่วมกัน
+        พื้นที่ของครอบครัวสำหรับเก็บงาน ไฟล์ และปฏิทินร่วมกัน
         เชื่อมกับ LINE สั่งงานบางอย่างได้จากแชทโดยตรง
       </p>
 
@@ -65,37 +65,52 @@ export default function HelpPage() {
         </div>
         <p className="mt-3 text-[14px] text-text-2">
           พิมพ์ในแชทกับบอท (งานส่วนตัว) หรือในกลุ่มครอบครัวที่อนุมัติแล้ว
-          บรรทัดแรกคือชื่องาน อีกสองบรรทัดใส่หรือไม่ใส่ก็ได้
+          พิมพ์ <code className="text-text">#งาน</code> แล้วกดไมค์พูดต่อได้
+          ทั้งประโยคอยู่บรรทัดเดียว ไม่ต้องใส่ <code className="text-text">:</code>
         </p>
         <Syntax>
-          {`#งาน ชื่องาน
+          {`#งาน จ่ายค่าน้ำ กำหนด บ่ายสี่โมง ผู้รับผิดชอบ พ่อ`}
+        </Syntax>
+        <p className="mt-2 text-[13px] text-text-2">หรือพิมพ์แบบหลายบรรทัด:</p>
+        <Syntax>
+          {`#งาน จ่ายค่าน้ำ
 กำหนด: 25/12/2026 18:00
-ผู้รับผิดชอบ: ชื่อสมาชิก`}
+ผู้รับผิดชอบ: พ่อ`}
         </Syntax>
 
         <div className="mt-4 space-y-3 text-[13.5px] text-text-2">
           <div>
-            <div className="font-semibold text-text">กำหนด: (ไม่บังคับ)</div>
+            <div className="font-semibold text-text">
+              กำหนด / เวลา / วันที่ (ไม่บังคับ)
+            </div>
             <ul className="mt-1 list-disc space-y-0.5 pl-5">
               <li>
-                <code className="text-text">25/12/2026 18:00</code> หรือ{" "}
-                <code className="text-text">25/12 18:00</code> (ไม่ใส่ปีก็ได้)
-              </li>
-              <li>
-                <code className="text-text">วันนี้ 15:00</code> ·{" "}
+                วันที่: <code className="text-text">25/12/2026 18:00</code> ·{" "}
+                <code className="text-text">25/12 18:00</code> ·{" "}
+                <code className="text-text">วันนี้</code> ·{" "}
                 <code className="text-text">พรุ่งนี้ 09:00</code> ·{" "}
                 <code className="text-text">มะรืน</code>
               </li>
               <li>
-                <code className="text-text">15:00</code> เฉย ๆ = วันนี้เวลานั้น
-                (ถ้าผ่านแล้วเลื่อนเป็นพรุ่งนี้)
+                เวลาพูด: <code className="text-text">บ่าย 4</code> ·{" "}
+                <code className="text-text">บ่ายสี่โมงครึ่ง</code> ·{" "}
+                <code className="text-text">5 โมงเย็น</code> ·{" "}
+                <code className="text-text">สองทุ่ม</code> ·{" "}
+                <code className="text-text">ตีห้า</code> ·{" "}
+                <code className="text-text">10 โมง</code> ·{" "}
+                <code className="text-text">4 pm</code> ·{" "}
+                <code className="text-text">16 นาฬิกา 30</code>
               </li>
-              <li>ไม่ใส่บรรทัดนี้ = พรุ่งนี้ 09:00</li>
+              <li>
+                ใส่แค่เวลา (<code className="text-text">15:00</code>) = วันนี้
+                เวลานั้น ถ้าผ่านแล้วเลื่อนเป็นพรุ่งนี้
+              </li>
+              <li>ไม่ใส่เลย = พรุ่งนี้ 09:00</li>
             </ul>
           </div>
           <div>
             <div className="font-semibold text-text">
-              ผู้รับผิดชอบ: (เฉพาะงานครอบครัว)
+              ผู้รับผิดชอบ / มอบหมาย (เฉพาะงานครอบครัว)
             </div>
             <ul className="mt-1 list-disc space-y-0.5 pl-5">
               <li>
@@ -106,6 +121,11 @@ export default function HelpPage() {
               <li>งานส่วนตัวมอบหมายให้คนอื่นไม่ได้</li>
             </ul>
           </div>
+          <p>
+            ทุกงานที่สร้างจาก <code className="text-text">#งาน</code>{" "}
+            จะเตือนอัตโนมัติเมื่อถึงเวลากำหนด
+            (ปรับหรือเพิ่มการเตือนได้ในหน้ารายละเอียดงาน)
+          </p>
         </div>
       </section>
 
@@ -130,7 +150,15 @@ export default function HelpPage() {
             ต้องตอบกลับที่รูปนั้นว่า <code className="text-text">#เก็บ</code>{" "}
             เพื่อยืนยัน
           </li>
+          <li>
+            เปลี่ยนชื่อไฟล์ล่าสุด: พิมพ์{" "}
+            <code className="text-text">#ชื่อไฟล์ ชื่อใหม่</code>
+          </li>
         </ul>
+        <p className="mt-3 text-[13px] text-text-2">
+          พิมพ์ <code className="text-text">เมนู</code>{" "}
+          หาบอทเมื่อไหร่ก็ได้ เพื่อดูสรุปคำสั่งทั้งหมด
+        </p>
       </section>
 
       <section className="fk-card mt-4 p-5">
