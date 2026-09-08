@@ -98,6 +98,15 @@ Deno.test("keyword as the first word stays part of the title", () => {
   }
 });
 
+Deno.test('"เวลา" works like "กำหนด"', () => {
+  const r = parseNganCommand("#งาน ประชุมทีม เวลา บ่าย 3");
+  assertEquals(r.ok, true);
+  if (r.ok) {
+    assertEquals(r.title, "ประชุมทีม");
+    assertEquals(r.dueRaw, "บ่าย 3");
+  }
+});
+
 Deno.test("assignee before due, inline, no colon", () => {
   const r = parseNganCommand("#งาน ล้างรถ ผู้รับผิดชอบ พ่อ กำหนด เย็น 5");
   assertEquals(r.ok, true);

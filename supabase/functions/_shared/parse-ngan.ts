@@ -4,7 +4,7 @@
 // line, no ":", no newlines, numbers often spelled as Thai words. Both the
 // spoken form and the original typed multi-line form are accepted.
 //
-//   #งาน <title> [กำหนด <date/time>] [ผู้รับผิดชอบ <name | ฉัน | ทุกคน>]
+//   #งาน <title> [กำหนด|เวลา|วันที่ <date/time>] [ผู้รับผิดชอบ <name | ฉัน | ทุกคน>]
 //
 // กำหนด formats (Asia/Bangkok, no DST -> fixed +07:00):
 //   DD/MM/YYYY HH:mm | DD/MM/YYYY | DD/MM HH:mm | DD/MM
@@ -30,7 +30,7 @@ export interface NganParseErr {
 }
 export type NganParseResult = NganParseOk | NganParseErr;
 
-const DUE_KEYS = ["กำหนด", "กําหนด", "วันที่", "due"];
+const DUE_KEYS = ["กำหนด", "กําหนด", "วันที่", "เวลา", "due"];
 const ASSIGNEE_KEYS = [
   "ผู้รับผิดชอบ",
   "ผู้รับ",
