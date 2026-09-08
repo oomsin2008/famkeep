@@ -1,14 +1,18 @@
 // Deterministic, rule-based #งาน parser. No LLM.
 //
-// Grammar (minimal, explicit):
-//   #งาน <title>                     -- required; title is the rest of the first line
-//   กำหนด: <date/time>               -- optional; Thailand timezone
-//   ผู้รับผิดชอบ: <name | ฉัน | ทุกคน>  -- optional; resolved by the caller against members
+// The user types "#งาน" and may dictate the rest (Android/Gboard voice): one
+// line, no ":", no newlines, numbers often spelled as Thai words. Both the
+// spoken form and the original typed multi-line form are accepted.
 //
-// กำหนด formats supported (Asia/Bangkok, no DST -> fixed +07:00):
+//   #งาน <title> [กำหนด <date/time>] [ผู้รับผิดชอบ <name | ฉัน | ทุกคน>]
+//
+// กำหนด formats (Asia/Bangkok, no DST -> fixed +07:00):
 //   DD/MM/YYYY HH:mm | DD/MM/YYYY | DD/MM HH:mm | DD/MM
-//   วันนี้ [HH:mm] | พรุ่งนี้ [HH:mm] | มะรืน(นี้) [HH:mm]
-//   HH:mm                            -- today at that time (or tomorrow if already past)
+//   วันนี้ / พรุ่งนี้ / มะรืน(นี้)  [+ any time below]
+//   HH:mm | H นาฬิกา [MM] | H นาฬิกาครึ่ง | H[:MM] AM/PM
+//   บ่าย N [โมง] | N โมงเย็น | เย็น N | N ทุ่ม | ตี N | N โมงเช้า | เช้า N
+//   เที่ยง | เที่ยงคืน   (+ "ครึ่ง" suffix anywhere -> :30)
+//   a bare time already past today -> tomorrow; no time -> 09:00
 // 4-digit years >= 2400 are treated as Buddhist Era and converted.
 
 const TRIGGER = "#งาน";
@@ -26,38 +30,76 @@ export interface NganParseErr {
 }
 export type NganParseResult = NganParseOk | NganParseErr;
 
+const DUE_KEYS = ["กำหนด", "กําหนด", "วันที่", "due"];
+const ASSIGNEE_KEYS = [
+  "ผู้รับผิดชอบ",
+  "ผู้รับ",
+  "มอบหมายให้",
+  "มอบหมาย",
+  "assignee",
+];
+
+/** Collapse runs of whitespace (incl. newlines) to a single space and trim. */
+function tidy(s: string): string {
+  return s.replace(/\s+/g, " ").trim();
+}
+
+/** First index in `body` where any keyword begins with non-space content before
+ *  it (so a leading "กำหนดการประชุม" stays part of the title). -1 if none. */
+function firstKeyword(body: string, keys: string[]): number {
+  let best = -1;
+  for (const key of keys) {
+    let from = 0;
+    while (true) {
+      const at = body.indexOf(key, from);
+      if (at < 0) break;
+      if (body.slice(0, at).trim().length > 0 && (best < 0 || at < best)) {
+        best = at;
+      }
+      from = at + key.length;
+    }
+  }
+  return best;
+}
+
+/** Strip a leading keyword + ":" from a field segment. */
+function stripKey(segment: string, keys: string[]): string {
+  const s = segment.trimStart();
+  for (const key of keys) {
+    if (s.startsWith(key)) {
+      return s.slice(key.length).replace(/^[:：\s]+/, "");
+    }
+  }
+  return s;
+}
+
 export function parseNganCommand(text: string): NganParseResult {
   if (!text || !text.includes(TRIGGER)) return { ok: false, reason: "no_trigger" };
 
-  const lines = text.split(/\r?\n/);
-  const triggerLineIdx = lines.findIndex((l) => l.includes(TRIGGER));
-  const firstLine = lines[triggerLineIdx];
-  const title = firstLine.slice(firstLine.indexOf(TRIGGER) + TRIGGER.length).trim();
+  const body = text.slice(text.indexOf(TRIGGER) + TRIGGER.length);
 
+  const dueAt = firstKeyword(body, DUE_KEYS);
+  const whoAt = firstKeyword(body, ASSIGNEE_KEYS);
+
+  const cuts = [dueAt, whoAt].filter((i) => i >= 0).sort((a, b) => a - b);
+  const titleEnd = cuts.length > 0 ? cuts[0] : body.length;
+  const title = tidy(body.slice(0, titleEnd));
   if (!title) return { ok: false, reason: "missing_title" };
 
-  let dueRaw: string | null = null;
-  let assigneeRaw: string | null = null;
+  const fieldValue = (start: number, keys: string[]): string | null => {
+    if (start < 0) return null;
+    const next = cuts.find((i) => i > start);
+    const raw = stripKey(body.slice(start, next ?? body.length), keys);
+    const val = tidy(raw);
+    return val.length > 0 ? val : null;
+  };
 
-  for (const line of lines.slice(triggerLineIdx + 1)) {
-    const due = matchField(line, ["กำหนด", "กําหนด", "due"]);
-    if (due !== null && dueRaw === null) dueRaw = due;
-    const who = matchField(line, ["ผู้รับผิดชอบ", "ผู้รับ", "มอบหมาย", "assignee"]);
-    if (who !== null && assigneeRaw === null) assigneeRaw = who;
-  }
-
-  return { ok: true, title: title.slice(0, 200), dueRaw, assigneeRaw };
-}
-
-function matchField(line: string, keys: string[]): string | null {
-  const trimmed = line.trim();
-  for (const key of keys) {
-    if (trimmed.startsWith(key)) {
-      const rest = trimmed.slice(key.length).replace(/^[:：\s]+/, "").trim();
-      return rest.length > 0 ? rest : null;
-    }
-  }
-  return null;
+  return {
+    ok: true,
+    title: title.slice(0, 200),
+    dueRaw: fieldValue(dueAt, DUE_KEYS),
+    assigneeRaw: fieldValue(whoAt, ASSIGNEE_KEYS),
+  };
 }
 
 /** Build a UTC ISO string from Bangkok wall-clock components. */
@@ -95,6 +137,104 @@ export interface DueParseResult {
   error: boolean;
 }
 
+const THAI_NUM: Record<string, number> = {
+  หนึ่ง: 1,
+  เอ็ด: 1,
+  นึง: 1,
+  สอง: 2,
+  สาม: 3,
+  สี่: 4,
+  ห้า: 5,
+  หก: 6,
+  เจ็ด: 7,
+  แปด: 8,
+  เก้า: 9,
+  สิบ: 10,
+  สิบเอ็ด: 11,
+  สิบเอด: 11,
+};
+
+// A number token: 1-2 Arabic digits or a spelled-out Thai number. Longer Thai
+// words first so "สิบเอ็ด" wins over "สิบ".
+const NUM = `(\\d{1,2}|${
+  Object.keys(THAI_NUM).sort((a, b) => b.length - a.length).join("|")
+})`;
+
+function toNum(tok: string | undefined): number | null {
+  if (!tok) return null;
+  if (/^\d{1,2}$/.test(tok)) return parseInt(tok, 10);
+  return THAI_NUM[tok] ?? null;
+}
+
+/**
+ * Parse a time-of-day phrase to 24h {hh, mm}, or null. `s` must be lowercased.
+ * Handles HH:mm, "H นาฬิกา MM", AM/PM, and Thai บ่าย/เย็น/ทุ่ม/ตี/เที่ยง forms
+ * with an optional "ครึ่ง" (:30) and Thai-word numbers.
+ */
+export function parseTimeOfDay(s: string): { hh: number; mm: number } | null {
+  const t = s.replace(
+    /[๐-๙]/g,
+    (d) => "๐๑๒๓๔๕๖๗๘๙".indexOf(d).toString(),
+  );
+  const half = /ครึ่ง/.test(t);
+  const at = (hh: number, mm = 0): { hh: number; mm: number } | null =>
+    hh >= 0 && hh <= 23
+      ? { hh, mm: mm || (half ? 30 : 0) }
+      : null;
+
+  if (/เที่ยงคืน/.test(t)) return at(0);
+  if (/เที่ยง/.test(t)) return at(12);
+
+  let m = t.match(/(\d{1,2})(?:[:.](\d{1,2}))?\s*([ap])\.?\s*m\.?/);
+  if (m) {
+    const hh = (parseInt(m[1], 10) % 12) + (m[3] === "p" ? 12 : 0);
+    return at(hh, m[2] ? parseInt(m[2], 10) : 0);
+  }
+
+  m = t.match(/(\d{1,2})\s*นาฬิกา\s*(\d{1,2})?/);
+  if (m) return at(parseInt(m[1], 10), m[2] ? parseInt(m[2], 10) : 0);
+
+  m = t.match(new RegExp(`ตี\\s*${NUM}`));
+  if (m) return at(toNum(m[1]) ?? -1);
+
+  if (/บ่ายโมง/.test(t)) return at(13);
+  m = t.match(new RegExp(`บ่าย\\s*${NUM}`));
+  if (m) {
+    const n = toNum(m[1]);
+    return n === null ? null : at(12 + n);
+  }
+
+  m = t.match(new RegExp(`(?:${NUM}\\s*โมงเย็น|เย็น\\s*${NUM})`));
+  if (m) {
+    const n = toNum(m[1] ?? m[2]);
+    return n === null ? null : at(12 + n);
+  }
+
+  if (/ทุ่มนึง|ทุ่มหนึ่ง/.test(t)) return at(19);
+  m = t.match(new RegExp(`${NUM}\\s*ทุ่ม`));
+  if (m) {
+    const n = toNum(m[1]);
+    return n === null ? null : at(18 + n);
+  }
+  if (/ทุ่ม/.test(t)) return at(19);
+
+  m = t.match(new RegExp(`(?:${NUM}\\s*โมงเช้า|เช้า\\s*${NUM})`));
+  if (m) {
+    const n = toNum(m[1] ?? m[2]);
+    return n === null ? null : at(n);
+  }
+
+  m = t.match(/(\d{1,2})[:.](\d{2})/);
+  if (m) {
+    return {
+      hh: clamp(parseInt(m[1], 10), 0, 23),
+      mm: clamp(parseInt(m[2], 10), 0, 59),
+    };
+  }
+
+  return null;
+}
+
 /**
  * Parse a `กำหนด:` value to a UTC ISO instant. `error:true` means the value was
  * present but unparseable (caller should send a usage hint rather than guess).
@@ -104,10 +244,10 @@ export function parseThaiDue(raw: string | null, now: Date): DueParseResult {
   const s = raw.trim().toLowerCase();
   const cur = bkkNow(now);
 
-  const timeMatch = s.match(/(\d{1,2})[:.](\d{2})/);
-  const hh = timeMatch ? clamp(parseInt(timeMatch[1], 10), 0, 23) : 9;
-  const mm = timeMatch ? clamp(parseInt(timeMatch[2], 10), 0, 59) : 0;
-  const hasTime = Boolean(timeMatch);
+  const tod = parseTimeOfDay(s);
+  const hh = tod ? tod.hh : 9;
+  const mm = tod ? tod.mm : 0;
+  const hasTime = tod !== null;
 
   // relative day words
   const rel = s.startsWith("วันนี้")

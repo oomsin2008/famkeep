@@ -75,6 +75,85 @@ Deno.test("parseThaiDue unparseable -> error", () => {
   assertEquals(parseThaiDue("สัปดาห์หน้า", NOW), { iso: null, error: true });
 });
 
+// --- voice input: "#งาน" typed, the rest dictated (one line, no colons) ---
+
+Deno.test("voice one-liner: title + due + assignee inline", () => {
+  const r = parseNganCommand(
+    "#งาน จ่ายค่าน้ำ กำหนด บ่ายสี่โมง ผู้รับผิดชอบ สมชาย",
+  );
+  assertEquals(r, {
+    ok: true,
+    title: "จ่ายค่าน้ำ",
+    dueRaw: "บ่ายสี่โมง",
+    assigneeRaw: "สมชาย",
+  });
+});
+
+Deno.test("keyword as the first word stays part of the title", () => {
+  const r = parseNganCommand("#งาน กำหนดการประชุมทีม\nกำหนด: พรุ่งนี้ 10:00");
+  assertEquals(r.ok, true);
+  if (r.ok) {
+    assertEquals(r.title, "กำหนดการประชุมทีม");
+    assertEquals(r.dueRaw, "พรุ่งนี้ 10:00");
+  }
+});
+
+Deno.test("assignee before due, inline, no colon", () => {
+  const r = parseNganCommand("#งาน ล้างรถ ผู้รับผิดชอบ พ่อ กำหนด เย็น 5");
+  assertEquals(r.ok, true);
+  if (r.ok) {
+    assertEquals(r.title, "ล้างรถ");
+    assertEquals(r.assigneeRaw, "พ่อ");
+    assertEquals(r.dueRaw, "เย็น 5");
+  }
+});
+
+Deno.test("title whitespace runs collapsed", () => {
+  const r = parseNganCommand("#งาน   จ่าย   ค่า   น้ำ  ");
+  assertEquals(r.ok, true);
+  if (r.ok) assertEquals(r.title, "จ่าย ค่า น้ำ");
+});
+
+// --- colloquial / spoken times ---
+
+Deno.test("บ่ายสี่โมง -> today 16:00", () => {
+  assertEquals(parseThaiDue("บ่ายสี่โมง", NOW).iso, "2026-09-03T09:00:00.000Z");
+});
+
+Deno.test("4 pm -> today 16:00", () => {
+  assertEquals(parseThaiDue("4 pm", NOW).iso, "2026-09-03T09:00:00.000Z");
+});
+
+Deno.test("2 ทุ่ม -> today 20:00", () => {
+  assertEquals(parseThaiDue("2 ทุ่ม", NOW).iso, "2026-09-03T13:00:00.000Z");
+});
+
+Deno.test("ตี 3 already past -> tomorrow 03:00", () => {
+  assertEquals(parseThaiDue("ตี 3", NOW).iso, "2026-09-03T20:00:00.000Z");
+});
+
+Deno.test("16 นาฬิกา 30 -> today 16:30", () => {
+  assertEquals(
+    parseThaiDue("16 นาฬิกา 30", NOW).iso,
+    "2026-09-03T09:30:00.000Z",
+  );
+});
+
+Deno.test("ทุ่มครึ่ง -> today 19:30", () => {
+  assertEquals(parseThaiDue("ทุ่มครึ่ง", NOW).iso, "2026-09-03T12:30:00.000Z");
+});
+
+Deno.test("พรุ่งนี้ บ่าย 4 -> tomorrow 16:00", () => {
+  assertEquals(
+    parseThaiDue("พรุ่งนี้ บ่าย 4", NOW).iso,
+    "2026-09-04T09:00:00.000Z",
+  );
+});
+
+Deno.test("bare time-of-day word without a number -> error", () => {
+  assertEquals(parseThaiDue("บ่าย", NOW), { iso: null, error: true });
+});
+
 Deno.test("parseThaiDue null -> no error", () => {
   assertEquals(parseThaiDue(null, NOW), { iso: null, error: false });
 });
